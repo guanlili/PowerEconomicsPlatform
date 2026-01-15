@@ -22,8 +22,8 @@ export const generateFactorData = (dates: string[], factorNames: string[]) => {
   });
 };
 
-export const generateCorrelationMatrix = (factorNames: string[]) => {
-  const indicators = ECONOMIC_INDICATORS.map(ind => ind.key);
+export const generateCorrelationMatrix = (factorNames: string[], economicVars: string[]) => {
+  const indicators = economicVars.length > 0 ? economicVars : ECONOMIC_INDICATORS.map(ind => ind.key);
   const matrix: any[] = [];
   
   indicators.forEach(ind => {

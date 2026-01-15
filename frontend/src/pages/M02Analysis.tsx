@@ -116,20 +116,26 @@ const M02Analysis: React.FC = () => {
       return;
     }
 
+    if (!economicVars || economicVars.length === 0) {
+      message.error('请选择至少一个目标经济变量');
+      setLoading(false);
+      return;
+    }
+
     const start = dateRange[0].format('YYYY-MM');
     const end = dateRange[1].format('YYYY-MM');
     const dates = generateDates(start, end);
 
     // Mock API call delay
     setTimeout(() => {
-      const allKeys = [...factors, ...(economicVars || [])];
+      const allKeys = [...factors, ...economicVars];
       const factorData = generateFactorData(dates, allKeys);
-      const corrMatrix = generateCorrelationMatrix(factors);
+      const corrMatrix = generateCorrelationMatrix(factors, economicVars);
 
       setChartData(factorData);
       setCorrelationData(corrMatrix);
       setSelectedFactors(factors);
-      setSelectedEconomicVars(economicVars || []);
+      setSelectedEconomicVars(economicVars);
       setLoading(false);
       message.success('分析完成');
     }, 500);
