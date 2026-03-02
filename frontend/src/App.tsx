@@ -5,9 +5,10 @@ import zhCN from 'antd/locale/zh_CN';
 import MainLayout from './layouts/MainLayout';
 import M02Analysis from './pages/M02Analysis';
 import M03Prediction from './pages/M03Prediction';
+import Login from './pages/Login';
 
 // Customize Ant Design locale to use Chinese month names in inputs
-const customZhCN: any = {
+const customZhCN = {
   ...zhCN,
   DatePicker: {
     ...zhCN.DatePicker,
@@ -17,6 +18,19 @@ const customZhCN: any = {
       months: ['一月', '二月', '三月', '四月', '五月', '六月', '七月', '八月', '九月', '十月', '十一月', '十二月'],
     }
   }
+} as typeof zhCN;
+
+const isAuthed = () => {
+  try {
+    const raw = localStorage.getItem('auth_user');
+    return !!raw;
+  } catch {
+    return false;
+  }
+};
+
+const ProtectedRoute: React.FC<{ element: React.ReactElement }> = ({ element }) => {
+  return isAuthed() ? element : <Navigate to="/login" replace />;
 };
 
 const App: React.FC = () => {
@@ -24,11 +38,11 @@ const App: React.FC = () => {
     <ConfigProvider locale={customZhCN}>
       <Router>
         <Routes>
+          <Route path="/login" element={<Login />} />
           <Route path="/" element={<MainLayout />}>
             <Route index element={<Navigate to="/m02" replace />} />
-            <Route path="m02" element={<M02Analysis />} />
-            <Route path="m03" element={<M03Prediction />} />
-            {/* M01 is disabled for now */}
+            <Route path="m02" element={<ProtectedRoute element={<M02Analysis />} />} />
+            <Route path="m03" element={<ProtectedRoute element={<M03Prediction />} />} />
           </Route>
         </Routes>
       </Router>

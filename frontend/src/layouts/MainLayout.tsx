@@ -1,5 +1,5 @@
 import React from 'react';
-import { Layout, Menu, Typography } from 'antd';
+import { Layout, Menu, Typography, Button } from 'antd';
 import { useNavigate, useLocation, Outlet } from 'react-router-dom';
 import { LineChartOutlined, BarChartOutlined, DatabaseOutlined } from '@ant-design/icons';
 
@@ -33,6 +33,13 @@ const MainLayout: React.FC = () => {
     navigate(e.key);
   };
 
+  const user = localStorage.getItem('auth_user') || '';
+
+  const handleLogout = () => {
+    localStorage.removeItem('auth_user');
+    navigate('/login', { replace: true });
+  };
+
   return (
     <Layout style={{ minHeight: '100vh' }}>
       <Header style={{ display: 'flex', alignItems: 'center', background: '#001529', padding: '0 24px' }}>
@@ -47,6 +54,10 @@ const MainLayout: React.FC = () => {
           onClick={handleMenuClick}
           style={{ flex: 1, minWidth: 0 }}
         />
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          {user ? <span style={{ color: '#fff' }}>{user}</span> : null}
+          <Button size="small" onClick={handleLogout}>退出登录</Button>
+        </div>
       </Header>
       <Content style={{ padding: '0 0px', background: '#f0f2f5' }}>
         <Outlet />
