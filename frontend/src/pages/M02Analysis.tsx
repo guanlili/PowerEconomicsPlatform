@@ -9,7 +9,11 @@ import {
   REGION_FACTORS,
   SECTOR_FACTORS_MAP,
   INDUSTRY_FACTORS_MAP,
-  SECTOR_LIST
+  SECTOR_LIST,
+  REGION_LIST,
+  REGION_ECONOMIC_INDICATORS,
+  INDUSTRY_ECONOMIC_INDICATORS,
+  SECTOR_ECONOMIC_INDICATORS
 } from '../types';
 import type { FactorConfig } from '../types';
 import { generateDates, generateFactorData, generateCorrelationMatrix } from '../utils/mockData';
@@ -28,27 +32,6 @@ const monthCellRender = (date: any) => {
     </div>
   );
 };
-// Mock data for Cascader (City/District)
-const GUIZHOU_CASCADER_DATA = [
-  {
-    value: 'guiyang',
-    label: '贵阳市',
-    children: [
-      { value: 'nanming', label: '南明区' },
-      { value: 'yunyan', label: '云岩区' },
-      { value: 'guanshanhu', label: '观山湖区' },
-    ],
-  },
-  {
-    value: 'zunyi',
-    label: '遵义市',
-    children: [
-      { value: 'honghuagang', label: '红花岗区' },
-      { value: 'huichuan', label: '汇川区' },
-    ],
-  },
-];
-
 const M02Analysis: React.FC = () => {
   const [form] = Form.useForm();
   const [activeTab, setActiveTab] = useState('sector');
@@ -58,6 +41,16 @@ const M02Analysis: React.FC = () => {
   const [correlationData, setCorrelationData] = useState<any[]>([]);
   const [selectedFactors, setSelectedFactors] = useState<string[]>([]);
   const [selectedEconomicVars, setSelectedEconomicVars] = useState<string[]>([]);
+
+  // Get current indicators based on active tab
+  const getCurrentIndicators = () => {
+    switch (activeTab) {
+      case 'region': return REGION_ECONOMIC_INDICATORS;
+      case 'industry': return INDUSTRY_ECONOMIC_INDICATORS;
+      case 'sector': return SECTOR_ECONOMIC_INDICATORS;
+      default: return REGION_ECONOMIC_INDICATORS;
+    }
+  };
 
   // Get current factors config based on active tab and selected object
   const getCurrentFactors = (): FactorConfig[] => {
@@ -72,20 +65,16 @@ const M02Analysis: React.FC = () => {
   // Handle form value changes to update current object state
   const handleValuesChange = (changedValues: any) => {
     if (changedValues.object) {
-      // For region (Cascader), value is array, but we don't use it for factor mapping
-      // For sector/industry (Select), value is string
-      if (activeTab !== 'region') {
-        setCurrentObject(changedValues.object);
-        // Reset selected factors when object changes because factor list changes
-        form.setFieldValue('factors', []);
-      }
+      setCurrentObject(changedValues.object);
+      // Reset selected factors when object changes because factor list changes
+      form.setFieldValue('factors', []);
     }
   };
 
   // Reset form fields when tab changes
   const handleTabChange = (key: string) => {
     setActiveTab(key);
-    form.resetFields(['object', 'factors']);
+    form.resetFields(['object', 'factors', 'economicVars']);
     setChartData([]);
     setCorrelationData([]);
 
@@ -93,6 +82,7 @@ const M02Analysis: React.FC = () => {
     let defaultObject = '';
     if (key === 'sector') defaultObject = SECTOR_LIST[0];
     if (key === 'industry') defaultObject = INDUSTRY_LIST[0];
+    if (key === 'region') defaultObject = REGION_LIST[0];
 
     if (defaultObject) {
       form.setFieldValue('object', defaultObject);
@@ -145,7 +135,7 @@ const M02Analysis: React.FC = () => {
     if (chartData.length === 0) return {};
 
     const currentFactors = getCurrentFactors();
-
+    const currentIndicators = getCurrentIndicators();
 
     return {
       tooltip: {
@@ -154,7 +144,7 @@ const M02Analysis: React.FC = () => {
       legend: {
         data: [
           ...selectedFactors.map(f => currentFactors.find(rf => rf.name === f)?.label || f),
-          ...selectedEconomicVars.map(e => ECONOMIC_INDICATORS.find(ei => ei.key === e)?.label || e)
+          ...selectedEconomicVars.map(e => currentIndicators.find(ei => ei.key === e)?.label || e)
         ]
       },
       xAxis: {
@@ -164,37 +154,38 @@ const M02Analysis: React.FC = () => {
       yAxis: [
         {
           type: 'value',
-          name: '影响因素',
           position: 'left',
           axisLine: { show: true, lineStyle: { color: '#5470C6' } }
         },
         {
           type: 'value',
-          name: '经济变量',
           position: 'right',
           axisLine: { show: true, lineStyle: { color: '#EE6666' } },
-          splitLine: { show: false }
+          splitLine: { show: false },
+          axisLabel: { formatter: '{value}%' }
         }
       ],
       series: [
         ...selectedFactors.map(factor => {
           const config = currentFactors.find(f => f.name === factor);
+          const isPercentage = config?.unit.includes('%');
           return {
             name: config?.label || factor,
             type: 'line',
             data: chartData.map(item => item[factor]),
             smooth: true,
-            yAxisIndex: 0
+            yAxisIndex: isPercentage ? 1 : 0
           };
         }),
         ...selectedEconomicVars.map(ev => {
-          const label = ECONOMIC_INDICATORS.find(e => e.key === ev)?.label || ev;
+          const config = currentIndicators.find(e => e.key === ev);
+          const isPercentage = config?.unit.includes('%');
           return {
-            name: label,
+            name: config?.label || ev,
             type: 'line',
             data: chartData.map(item => item[ev]),
             smooth: true,
-            yAxisIndex: 1,
+            yAxisIndex: isPercentage ? 1 : 0,
             lineStyle: { type: 'dashed' }
           };
         })
@@ -216,12 +207,13 @@ const M02Analysis: React.FC = () => {
       };
     }),
     ...selectedEconomicVars.map(e => {
-      const label = ECONOMIC_INDICATORS.find(ei => ei.key === e)?.label || e;
+      const config = getCurrentIndicators().find(ei => ei.key === e);
+      const label = config?.label || e;
       return {
         title: `${label} (目标变量)`,
         dataIndex: e,
         key: e,
-        render: (value: number) => <span style={{ color: '#EE6666' }}>{value?.toFixed(2)}</span>
+        render: (value: number) => <span style={{ color: '#EE6666' }}>{value?.toFixed(2)}{config?.unit.includes('%') ? '%' : ''}</span>
       };
     })
   ];
@@ -229,7 +221,7 @@ const M02Analysis: React.FC = () => {
   const correlationColumns = [
     {
       title: '经济指标', dataIndex: 'indicator', key: 'indicator',
-      render: (text: string) => ECONOMIC_INDICATORS.find(e => e.key === text)?.label || text
+      render: (text: string) => getCurrentIndicators().find(e => e.key === text)?.label || text
     },
     ...selectedFactors.map(f => {
       const config = currentFactors.find(rf => rf.name === f);
@@ -250,8 +242,10 @@ const M02Analysis: React.FC = () => {
     switch (activeTab) {
       case 'region':
         return (
-          <Form.Item name="object" label="区域选择 (市/州 - 区/县)" rules={[{ required: true, message: '请选择区域' }]}>
-            <Cascader options={GUIZHOU_CASCADER_DATA} placeholder="请选择市/州及区/县" />
+          <Form.Item name="object" label="区域选择" rules={[{ required: true, message: '请选择区域' }]}>
+            <Select placeholder="请选择市/州">
+              {REGION_LIST.map(city => <Option key={city} value={city}>{city}</Option>)}
+            </Select>
           </Form.Item>
         );
       case 'industry':
@@ -328,7 +322,7 @@ const M02Analysis: React.FC = () => {
 
           <Form.Item name="economicVars" label="目标经济变量">
             <Checkbox.Group style={{ display: 'flex', flexDirection: 'column' }}>
-              {ECONOMIC_INDICATORS.map(ind => (
+              {getCurrentIndicators().map(ind => (
                 <Checkbox key={ind.key} value={ind.key} style={{ marginLeft: 0 }}>
                   {ind.label}
                 </Checkbox>

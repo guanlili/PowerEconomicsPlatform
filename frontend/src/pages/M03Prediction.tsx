@@ -9,7 +9,11 @@ import {
   REGION_FACTORS,
   SECTOR_FACTORS_MAP,
   INDUSTRY_FACTORS_MAP,
-  SECTOR_LIST
+  SECTOR_LIST,
+  REGION_LIST,
+  REGION_ECONOMIC_INDICATORS,
+  INDUSTRY_ECONOMIC_INDICATORS,
+  SECTOR_ECONOMIC_INDICATORS
 } from '../types';
 import type { FactorConfig } from '../types';
 import { generateDates, generatePredictionData, calculateAccuracy } from '../utils/mockData';
@@ -28,33 +32,22 @@ const monthCellRender = (date: any) => {
     </div>
   );
 };
-// Mock data for Cascader (City/District) - reused from M02
-const GUIZHOU_CASCADER_DATA = [
-  {
-    value: 'guiyang',
-    label: '贵阳市',
-    children: [
-      { value: 'nanming', label: '南明区' },
-      { value: 'yunyan', label: '云岩区' },
-      { value: 'guanshanhu', label: '观山湖区' },
-    ],
-  },
-  {
-    value: 'zunyi',
-    label: '遵义市',
-    children: [
-      { value: 'honghuagang', label: '红花岗区' },
-      { value: 'huichuan', label: '汇川区' },
-    ],
-  },
-];
-
 const M03Prediction: React.FC = () => {
   const [form] = Form.useForm();
   const [activeTab, setActiveTab] = useState('sector');
   const [currentObject, setCurrentObject] = useState<string>('第一产业'); // Default for sector
   const [loading, setLoading] = useState(false);
   const [predictionData, setPredictionData] = useState<any[]>([]);
+
+  // Get current indicators based on active tab
+  const getCurrentIndicators = () => {
+    switch (activeTab) {
+      case 'region': return REGION_ECONOMIC_INDICATORS;
+      case 'industry': return INDUSTRY_ECONOMIC_INDICATORS;
+      case 'sector': return SECTOR_ECONOMIC_INDICATORS;
+      default: return REGION_ECONOMIC_INDICATORS;
+    }
+  };
 
   // Get current factors config based on active tab and selected object
   const getCurrentFactors = (): FactorConfig[] => {
@@ -69,13 +62,9 @@ const M03Prediction: React.FC = () => {
   // Handle form value changes to update current object state
   const handleValuesChange = (changedValues: any) => {
     if (changedValues.object) {
-      // For region (Cascader), value is array, but we don't use it for factor mapping
-      // For sector/industry (Select), value is string
-      if (activeTab !== 'region') {
-        setCurrentObject(changedValues.object);
-        // Reset selected factors when object changes because factor list changes
-        form.setFieldValue('factors', []);
-      }
+      setCurrentObject(changedValues.object);
+      // Reset selected factors when object changes because factor list changes
+      form.setFieldValue('factors', []);
     }
   };
 
@@ -89,6 +78,7 @@ const M03Prediction: React.FC = () => {
     let defaultObject = '';
     if (key === 'sector') defaultObject = SECTOR_LIST[0];
     if (key === 'industry') defaultObject = INDUSTRY_LIST[0];
+    if (key === 'region') defaultObject = REGION_LIST[0];
 
     if (defaultObject) {
       form.setFieldValue('object', defaultObject);
@@ -127,19 +117,36 @@ const M03Prediction: React.FC = () => {
   const getMainChartOption = () => {
     if (predictionData.length === 0) return {};
 
-    const series = ECONOMIC_INDICATORS.map(ind => ({
-      name: ind.label,
-      type: 'line',
-      data: predictionData.map(item => item[`${ind.key}_pred`]),
-      smooth: true,
-    }));
+    const indicators = getCurrentIndicators();
+    const series = indicators.map(ind => {
+      const isPercentage = ind.unit.includes('%');
+      return {
+        name: ind.label,
+        type: 'line',
+        data: predictionData.map(item => item[`${ind.key}_pred`]),
+        smooth: true,
+        yAxisIndex: isPercentage ? 1 : 0
+      };
+    });
 
     return {
-      title: { text: '五大经济指标预测趋势' },
+      title: { text: '经济指标预测趋势' },
       tooltip: { trigger: 'axis' },
-      legend: { data: ECONOMIC_INDICATORS.map(i => i.label), bottom: 0 },
+      legend: { data: indicators.map(i => i.label), bottom: 0 },
       xAxis: { type: 'category', data: predictionData.map(d => d.date) },
-      yAxis: { type: 'value' },
+      yAxis: [
+        {
+          type: 'value',
+          axisLine: { show: true },
+          splitLine: { show: true }
+        },
+        {
+          type: 'value',
+          axisLine: { show: true },
+          splitLine: { show: false },
+          axisLabel: { formatter: '{value}%' }
+        }
+      ],
       series
     };
   };
@@ -197,9 +204,10 @@ const M03Prediction: React.FC = () => {
   const getSummaryTableData = () => {
     if (predictionData.length === 0) return [];
 
-    // Calculate overall accuracy per row (average of 5 indicators)
+    const indicators = getCurrentIndicators();
+    // Calculate overall accuracy per row (average of current indicators)
     return predictionData.map(row => {
-      const accuracies = ECONOMIC_INDICATORS.map(ind =>
+      const accuracies = indicators.map(ind =>
         calculateAccuracy(row[`${ind.key}_actual`], row[`${ind.key}_pred`])
       );
       const avgAccuracy = accuracies.reduce((a, b) => a + b, 0) / accuracies.length;
@@ -213,8 +221,8 @@ const M03Prediction: React.FC = () => {
 
   const summaryColumns: any[] = [
     { title: '日期', dataIndex: 'date', key: 'date', fixed: 'left' as const, width: 120 },
-    ...ECONOMIC_INDICATORS.map(ind => ({
-      title: ind.label,
+    ...getCurrentIndicators().map(ind => ({
+      title: `${ind.label} (${ind.unit})`,
       children: [
         {
           title: '真实值',
@@ -239,8 +247,10 @@ const M03Prediction: React.FC = () => {
     switch (activeTab) {
       case 'region':
         return (
-          <Form.Item name="object" label="区域选择 (市/州 - 区/县)" rules={[{ required: true, message: '请选择区域' }]}>
-            <Cascader options={GUIZHOU_CASCADER_DATA} placeholder="请选择市/州及区/县" />
+          <Form.Item name="object" label="区域选择" rules={[{ required: true, message: '请选择区域' }]}>
+            <Select placeholder="请选择市/州">
+              {REGION_LIST.map(city => <Option key={city} value={city}>{city}</Option>)}
+            </Select>
           </Form.Item>
         );
       case 'industry':
@@ -342,7 +352,7 @@ const M03Prediction: React.FC = () => {
 
             <Col span={24}>
               <Card title="详细对比分析">
-                <Tabs items={ECONOMIC_INDICATORS.map(ind => ({
+                <Tabs items={getCurrentIndicators().map(ind => ({
                   key: ind.key,
                   label: ind.label,
                   children: <ReactECharts option={getDetailChartOption(ind.key)} style={{ height: 350, width: '100%' }} />

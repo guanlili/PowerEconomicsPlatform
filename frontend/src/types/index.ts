@@ -58,19 +58,59 @@ export interface EconomicData {
 }
 
 export const INDUSTRY_LIST = [
-  "农林牧渔业", "工业", "建筑业", "批发和零售业",
-  "交通运输、仓储和邮政业", "住宿和餐饮业", "金融业",
-  "房地产业", "信息传输、软件和信息技术服务业",
-  "租赁和商务服务业", "公共服务及管理组织"
+  "有色金属冶炼和压延加工业",
+  "黑色金属冶炼和压延加工业",
+  "化学原料和化学制品制造业",
+  "非金属矿物制品业",
+  "电力及热力的生产和供应业",
+  "石油煤炭及其他燃料加工业",
+  "计算机通信和其他电子设备制造业",
+  "电气机械和器材制造业",
+  "汽车制造业",
+  "通用设备制造业",
+  "信息传输软件和信息技术服务业",
+  "酒、饮料和精制茶制造业"
 ];
 
-export const ECONOMIC_INDICATORS = [
+export const REGION_LIST = [
+  "贵阳市", "遵义市", "六盘水市", "安顺市", "毕节市", "铜仁市", 
+  "黔东南苗族侗族自治州", "黔南布依族苗族自治州", "黔西南布依族苗族自治州", "贵安新区"
+];
+
+export const REGION_ECONOMIC_INDICATORS = [
   { key: "gdp", label: "生产总值(GDP)", unit: "亿元" },
-  { key: "fixed_asset_investment", label: "固定资产投资", unit: "亿元" },
+  { key: "fixed_asset_investment", label: "固资产投资", unit: "亿元" },
   { key: "economic_growth_rate", label: "经济增速", unit: "%" },
   { key: "economic_added_value", label: "经济增加值", unit: "亿元" },
-  { key: "ppi", label: "生产价格指数", unit: "%" }
+  { key: "ppi", label: "生产价格指数（PPI）", unit: "%" },
+  { key: "cpi", label: "居民消费价格指数(CPI)", unit: "%" },
+  { key: "industrial_added_value", label: "规模以上工业增加值", unit: "亿元" },
+  { key: "import_export_total", label: "进出口总额", unit: "亿美元" }
 ];
+
+export const INDUSTRY_ECONOMIC_INDICATORS = [
+  { key: "industry_added_value", label: "行业增加值", unit: "亿元" },
+  { key: "industry_total_output", label: "行业总产值", unit: "亿元" },
+  { key: "industry_profit_margin", label: "行业利润率", unit: "%" },
+  { key: "revenue", label: "营业收入", unit: "亿元" },
+  { key: "total_profit", label: "利润总额", unit: "亿元" },
+  { key: "import_export_value", label: "进出口额", unit: "亿美元" }
+];
+
+export const SECTOR_ECONOMIC_INDICATORS = [
+  { key: "sector_added_value", label: "产业增加值", unit: "亿元" },
+  { key: "added_value_growth", label: "增加值增速", unit: "%" },
+  { key: "gdp_ratio", label: "产业增加值占GDP比重", unit: "%" },
+  { key: "retail_sales_total", label: "全社会消费品零售总额", unit: "亿元" },
+  { key: "import_export_total", label: "进出口总额", unit: "亿美元" }
+];
+
+// For backward compatibility and common indicators
+export const ECONOMIC_INDICATORS = [
+  ...REGION_ECONOMIC_INDICATORS,
+  ...INDUSTRY_ECONOMIC_INDICATORS,
+  ...SECTOR_ECONOMIC_INDICATORS
+].filter((v, i, a) => a.findIndex(t => (t.key === v.key)) === i);
 
 export interface FactorConfig {
   name: string;
@@ -135,103 +175,133 @@ export const SECTOR_FACTORS_MAP: Record<string, FactorConfig[]> = {
 };
 
 export const INDUSTRY_FACTORS_MAP: Record<string, FactorConfig[]> = {
-  "农林牧渔业": [
-    { name: "investment_growth_rate", label: "投资完成额累计增长", unit: "%" },
-    { name: "power_generation", label: "发电量", unit: "亿千瓦时" },
+  "有色金属冶炼和压延加工业": [
     { name: "rainfall_total", label: "月内总降雨量", unit: "mm" },
-    { name: "max_temp_avg", label: "月内每日最高温度均值", unit: "℃" },
-    { name: "min_temp_avg", label: "月内每日最低温度均值", unit: "℃" },
-    { name: "frost_days", label: "冻害日数", unit: "天" },
-    { name: "fertilizer_usage", label: "化肥使用量", unit: "万吨" }
+    { name: "max_temp", label: "最高温", unit: "℃" },
+    { name: "humidity_avg", label: "月内湿度均值", unit: "%" },
+    { name: "non_ferrous_price", label: "有色金属现货均价", unit: "元/吨" },
+    { name: "non_ferrous_output", label: "有色金属产量", unit: "万吨" },
+    { name: "finished_goods_inventory", label: "产成品存货", unit: "亿元" },
+    { name: "power_price", label: "工业用电价格", unit: "元/kWh" },
+    { name: "green_power_ratio", label: "行业绿电消纳占比", unit: "%" }
   ],
-  "工业": [
-    { name: "investment_growth_rate", label: "投资完成额累计增长", unit: "%" },
-    { name: "ppi_purchase", label: "工业生产者购进价格指数", unit: "%" },
-    { name: "industrial_added_value_growth", label: "工业增加值同比增长", unit: "%" },
-    { name: "power_generation", label: "发电量", unit: "亿千瓦时" },
+  "黑色金属冶炼和压延加工业": [
     { name: "rainfall_total", label: "月内总降雨量", unit: "mm" },
-    { name: "min_temp_avg", label: "月内每日最低温度均值", unit: "℃" },
-    { name: "max_temp_avg", label: "月内每日最高温度均值", unit: "℃" },
-    { name: "industrial_capacity_utilization", label: "工业产能利用率", unit: "%" }
+    { name: "temp_avg", label: "月内温度均值", unit: "℃" },
+    { name: "humidity_avg", label: "月内湿度均值", unit: "%" },
+    { name: "power_price", label: "工业用电价格", unit: "元/kWh" },
+    { name: "steel_output", label: "钢材产量", unit: "万吨" },
+    { name: "iron_ore_import_price", label: "铁矿石进口均价", unit: "美元/吨" },
+    { name: "steel_price_index", label: "钢材综合价格指数", unit: "点" },
+    { name: "load_peak_valley_diff_rate", label: "负荷峰谷差率", unit: "%" }
   ],
-  "建筑业": [
-    { name: "investment_growth_rate", label: "投资完成额累计增长", unit: "%" },
-    { name: "power_generation", label: "发电量", unit: "亿千瓦时" },
+  "化学原料和化学制品制造业": [
     { name: "rainfall_total", label: "月内总降雨量", unit: "mm" },
-    { name: "min_temp_avg", label: "月内每日最低温度均值", unit: "℃" },
-    { name: "max_temp_avg", label: "月内每日最高温度均值", unit: "℃" },
-    { name: "construction_area", label: "房屋建筑施工面积", unit: "万㎡" }
+    { name: "temp_avg", label: "月内温度均值", unit: "℃" },
+    { name: "humidity_avg", label: "月内湿度均值", unit: "%" },
+    { name: "power_price", label: "工业用电价格", unit: "元/kWh" },
+    { name: "ccpi", label: "化工产品价格指数（CCPI）", unit: "点" },
+    { name: "crude_oil_price", label: "原油购进价格", unit: "元/吨" },
+    { name: "coal_price", label: "煤炭购进价格", unit: "元/吨" },
+    { name: "capacity_utilization", label: "行业产能利用率", unit: "%" },
+    { name: "power_reliability", label: "供电可靠性", unit: "%" }
   ],
-  "批发和零售业": [
-    { name: "investment_growth_rate", label: "投资完成额累计增长", unit: "%" },
-    { name: "power_generation", label: "发电量", unit: "亿千瓦时" },
+  "非金属矿物制品业": [
     { name: "rainfall_total", label: "月内总降雨量", unit: "mm" },
-    { name: "min_temp_avg", label: "月内每日最低温度均值", unit: "℃" },
-    { name: "max_temp_avg", label: "月内每日最高温度均值", unit: "℃" },
-    { name: "retail_sales", label: "社会消费品零售总额", unit: "亿元" },
-    { name: "inventory_turnover", label: "商品库存周转率", unit: "%" }
+    { name: "temp_avg", label: "月内温度均值", unit: "℃" },
+    { name: "humidity_avg", label: "月内湿度均值", unit: "%" },
+    { name: "power_price", label: "工业用电价格", unit: "元/kWh" },
+    { name: "fixed_asset_investment", label: "固定资产投资完成额", unit: "亿元" },
+    { name: "coal_price", label: "煤炭购进价格", unit: "元/吨" },
+    { name: "real_estate_investment", label: "房地产开发投资额", unit: "亿元" },
+    { name: "main_product_output", label: "水泥、玻璃等主要产品产量", unit: "万吨" },
+    { name: "load_rate", label: "用电负荷率", unit: "%" }
   ],
-  "交通运输、仓储和邮政业": [
-    { name: "investment_growth_rate", label: "投资完成额累计增长", unit: "%" },
-    { name: "power_generation", label: "发电量", unit: "亿千瓦时" },
+  "电力及热力的生产和供应业": [
     { name: "rainfall_total", label: "月内总降雨量", unit: "mm" },
-    { name: "min_temp_avg", label: "月内每日最低温度均值", unit: "℃" },
-    { name: "max_temp_avg", label: "月内每日最高温度均值", unit: "℃" },
-    { name: "transport_maintenance_cost", label: "运输车辆维护成本", unit: "万元/月" },
-    { name: "warehouse_turnover", label: "仓储企业库存周转率", unit: "%" }
+    { name: "temp_avg", label: "月内温度均值", unit: "℃" },
+    { name: "humidity_avg", label: "月内湿度均值", unit: "%" },
+    { name: "power_price", label: "工业用电价格", unit: "元/kWh" },
+    { name: "coal_price_index", label: "电煤购进价格指数", unit: "点" },
+    { name: "fixed_asset_investment", label: "电力、热力生产和供应业固定资产投资额", unit: "亿元" },
+    { name: "capacity_utilization", label: "行业产能利用率", unit: "%" },
+    { name: "equipment_utilization_hours", label: "发电设备平均利用小时数", unit: "h" }
   ],
-  "住宿和餐饮业": [
-    { name: "investment_growth_rate", label: "投资完成额累计增长", unit: "%" },
-    { name: "power_generation", label: "发电量", unit: "亿千瓦时" },
+  "石油煤炭及其他燃料加工业": [
     { name: "rainfall_total", label: "月内总降雨量", unit: "mm" },
-    { name: "min_temp_avg", label: "月内每日最低温度均值", unit: "℃" },
-    { name: "max_temp_avg", label: "月内每日最高温度均值", unit: "℃" },
-    { name: "catering_revenue", label: "餐饮收入", unit: "亿元" }
+    { name: "temp_avg", label: "月内温度均值", unit: "℃" },
+    { name: "humidity_avg", label: "月内湿度均值", unit: "%" },
+    { name: "power_price", label: "工业用电价格", unit: "元/kWh" },
+    { name: "brent_oil_price", label: "布伦特原油现货价格", unit: "美元/桶" },
+    { name: "ppi_index", label: "石油煤炭加工行业出厂价格指数", unit: "点" },
+    { name: "fixed_asset_investment", label: "行业固定资产投资额", unit: "亿元" },
+    { name: "renewable_energy_consumption_rate", label: "可再生能源消纳率", unit: "%" }
   ],
-  "金融业": [
-    { name: "investment_growth_rate", label: "投资完成额累计增长", unit: "%" },
-    { name: "power_generation", label: "发电量", unit: "亿千瓦时" },
+  "计算机通信和其他电子设备制造业": [
     { name: "rainfall_total", label: "月内总降雨量", unit: "mm" },
-    { name: "min_temp_avg", label: "月内每日最低温度均值", unit: "℃" },
-    { name: "max_temp_avg", label: "月内每日最高温度均值", unit: "℃" },
-    { name: "bond_issuance", label: "债券发行量", unit: "亿元" },
-    { name: "loan_deposit_ratio", label: "银行存贷比", unit: "%" }
+    { name: "temp_avg", label: "月内温度均值", unit: "℃" },
+    { name: "humidity_avg", label: "月内湿度均值", unit: "%" },
+    { name: "power_price", label: "工业用电价格", unit: "元/kWh" },
+    { name: "ppi_index", label: "计算机通信和其他电子设备制造业出厂价格指数", unit: "点" },
+    { name: "ic_import_price", label: "集成电路进口均价", unit: "美元/个" },
+    { name: "export_delivery_value", label: "出口交货值", unit: "亿元" },
+    { name: "fixed_asset_investment", label: "行业固定资产投资额", unit: "亿元" },
+    { name: "green_power_weight", label: "绿电与可再生能源证书（绿证）认购权重", unit: "%" }
   ],
-  "房地产业": [
-    { name: "investment_growth_rate", label: "投资完成额累计增长", unit: "%" },
-    { name: "power_generation", label: "发电量", unit: "亿千瓦时" },
+  "电气机械和器材制造业": [
     { name: "rainfall_total", label: "月内总降雨量", unit: "mm" },
-    { name: "min_temp_avg", label: "月内每日最低温度均值", unit: "℃" },
-    { name: "max_temp_avg", label: "月内每日最高温度均值", unit: "℃" },
-    { name: "commercial_housing_sales", label: "商品房销售额", unit: "亿元" },
-    { name: "real_estate_investment", label: "房地产开发投资完成额", unit: "亿元" }
+    { name: "temp_avg", label: "月内温度均值", unit: "℃" },
+    { name: "humidity_avg", label: "月内湿度均值", unit: "%" },
+    { name: "power_price", label: "工业用电价格", unit: "元/kWh" },
+    { name: "metal_price", label: "工业金属价格", unit: "元/吨" },
+    { name: "fixed_asset_investment", label: "行业固定资产投资额", unit: "亿元" },
+    { name: "ppi_index", label: "电气机械和器材制造业出厂价格指数", unit: "点" },
+    { name: "max_load", label: "月用电最大负荷", unit: "MW" }
   ],
-  "信息传输、软件和信息技术服务业": [
-    { name: "investment_growth_rate", label: "投资完成额累计增长", unit: "%" },
-    { name: "power_generation", label: "发电量", unit: "亿千瓦时" },
+  "汽车制造业": [
     { name: "rainfall_total", label: "月内总降雨量", unit: "mm" },
-    { name: "min_temp_avg", label: "月内每日最低温度均值", unit: "℃" },
-    { name: "max_temp_avg", label: "月内每日最高温度均值", unit: "℃" },
-    { name: "internet_users", label: "互联网用户数", unit: "万人" },
-    { name: "it_employees", label: "信息技术行业从业人员数", unit: "万人" }
+    { name: "temp_avg", label: "月内温度均值", unit: "℃" },
+    { name: "humidity_avg", label: "月内湿度均值", unit: "%" },
+    { name: "power_price", label: "工业用电价格", unit: "元/kWh" },
+    { name: "ppi_index", label: "汽车制造业出厂价格指数", unit: "点" },
+    { name: "car_output_sales", label: "汽车产量与销量", unit: "万辆" },
+    { name: "export_delivery_value", label: "出口交货值", unit: "亿元" },
+    { name: "fixed_asset_investment", label: "汽车制造业固定资产投资额", unit: "亿元" },
+    { name: "max_load", label: "月用电最大负荷", unit: "MW" }
   ],
-  "租赁和商务服务业": [
-    { name: "investment_growth_rate", label: "投资完成额累计增长", unit: "%" },
-    { name: "power_generation", label: "发电量", unit: "亿千瓦时" },
+  "通用设备制造业": [
     { name: "rainfall_total", label: "月内总降雨量", unit: "mm" },
-    { name: "min_temp_avg", label: "月内每日最低温度均值", unit: "℃" },
-    { name: "max_temp_avg", label: "月内每日最高温度均值", unit: "℃" },
-    { name: "equipment_rental_market", label: "设备租赁市场规模", unit: "亿元" }
+    { name: "temp_avg", label: "月内温度均值", unit: "℃" },
+    { name: "humidity_avg", label: "月内湿度均值", unit: "%" },
+    { name: "power_price", label: "工业用电价格", unit: "元/kWh" },
+    { name: "ppi_index", label: "通用设备制造业出厂价格指数", unit: "点" },
+    { name: "ferrous_metal_purchase_price", label: "黑色金属购进价格", unit: "元/吨" },
+    { name: "fixed_asset_investment", label: "通用设备制造业固定资产投资额", unit: "亿元" },
+    { name: "export_delivery_value", label: "出口交货值", unit: "亿元" },
+    { name: "load_peak_valley_diff_rate", label: "负荷峰谷差率", unit: "%" }
   ],
-  "公共服务及管理组织": [
-    { name: "investment_growth_rate", label: "投资完成额累计增长", unit: "%" },
-    { name: "power_generation", label: "发电量", unit: "亿千瓦时" },
+  "信息传输软件和信息技术服务业": [
     { name: "rainfall_total", label: "月内总降雨量", unit: "mm" },
-    { name: "min_temp_avg", label: "月内每日最低温度均值", unit: "℃" },
-    { name: "max_temp_avg", label: "月内每日最高温度均值", unit: "℃" },
-    { name: "cpi", label: "居民消费价格指数", unit: "%" },
-    { name: "retail_sales_social", label: "社会消费品零售总额", unit: "亿元" },
-    { name: "unemployment_rate", label: "失业率", unit: "%" }
+    { name: "temp_avg", label: "月内温度均值", unit: "℃" },
+    { name: "humidity_avg", label: "月内湿度均值", unit: "%" },
+    { name: "power_price", label: "工业用电价格", unit: "元/kWh" },
+    { name: "rd_investment", label: "行业研发经费投入", unit: "亿元" },
+    { name: "broadband_users", label: "互联网宽带接入用户数", unit: "万户" },
+    { name: "avg_salary", label: "从业人员平均工资", unit: "元" },
+    { name: "fixed_asset_investment", label: "行业固定资产投资额", unit: "亿元" },
+    { name: "it_export_value", label: "信息技术服务出口额", unit: "亿美元" },
+    { name: "backup_power_duration", label: "备用电源供电保障时长", unit: "h" }
+  ],
+  "酒、饮料和精制茶制造业": [
+    { name: "rainfall_total", label: "月内总降雨量", unit: "mm" },
+    { name: "temp_avg", label: "月内温度均值", unit: "℃" },
+    { name: "humidity_avg", label: "月内湿度均值", unit: "%" },
+    { name: "power_price", label: "工业用电价格", unit: "元/kWh" },
+    { name: "ppi_index", label: "酒、饮料和精制茶制造业出厂价格指数", unit: "点" },
+    { name: "retail_sales_total", label: "社会消费品零售总额", unit: "亿元" },
+    { name: "ag_product_purchase_price", label: "粮食、原料等农产品购进价格", unit: "元/吨" },
+    { name: "tourism_catering_revenue", label: "旅游及餐饮业营业额", unit: "亿元" },
+    { name: "load_peak_valley_diff_rate", label: "负荷峰谷差率", unit: "%" }
   ]
 };
 
