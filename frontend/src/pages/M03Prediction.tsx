@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Layout, Card, Form, Select, DatePicker, Button, Row, Col, Table, Typography, message, Tabs, Input, Cascader } from 'antd';
+import { Layout, Card, Form, Select, DatePicker, Button, Row, Col, Table, Typography, message, Tabs, Input, Cascader, Checkbox } from 'antd';
 import ReactECharts from 'echarts-for-react';
 import dayjs from 'dayjs';
 import 'dayjs/locale/zh-cn';
@@ -210,7 +210,9 @@ const M03Prediction: React.FC = () => {
       const accuracies = indicators.map(ind =>
         calculateAccuracy(row[`${ind.key}_actual`], row[`${ind.key}_pred`])
       );
-      const avgAccuracy = accuracies.reduce((a, b) => a + b, 0) / accuracies.length;
+      const avgAccuracy = accuracies.length > 0 
+        ? accuracies.reduce((a, b) => a + b, 0) / accuracies.length
+        : 0;
 
       return {
         ...row,
@@ -221,25 +223,26 @@ const M03Prediction: React.FC = () => {
 
   const summaryColumns: any[] = [
     { title: '日期', dataIndex: 'date', key: 'date', fixed: 'left' as const, width: 120 },
-    ...getCurrentIndicators().map(ind => ({
-      title: `${ind.label} (${ind.unit})`,
-      children: [
-        {
-          title: '真实值',
-          dataIndex: `${ind.key}_actual`,
-          key: `${ind.key}_actual`,
-          width: 100,
-          render: (val: number) => val?.toFixed(1)
-        },
-        {
-          title: '预测值',
-          dataIndex: `${ind.key}_pred`,
-          key: `${ind.key}_pred`,
-          width: 100,
-          render: (val: number) => <span style={{ color: '#1890ff', fontWeight: 'bold' }}>{val?.toFixed(1)}</span>
-        }
-      ]
-    })),
+    ...getCurrentIndicators()
+      .map(ind => ({
+        title: `${ind.label} (${ind.unit})`,
+        children: [
+          {
+            title: '真实值',
+            dataIndex: `${ind.key}_actual`,
+            key: `${ind.key}_actual`,
+            width: 100,
+            render: (val: number) => val?.toFixed(1)
+          },
+          {
+            title: '预测值',
+            dataIndex: `${ind.key}_pred`,
+            key: `${ind.key}_pred`,
+            width: 100,
+            render: (val: number) => <span style={{ color: '#1890ff', fontWeight: 'bold' }}>{val?.toFixed(1)}</span>
+          }
+        ]
+      })),
     { title: '综合精准度', dataIndex: 'accuracy', key: 'accuracy', fixed: 'right' as const, width: 100 }
   ];
 
@@ -304,7 +307,7 @@ const M03Prediction: React.FC = () => {
           style={{ padding: '0 24px 24px 24px' }}
           initialValues={{
             province: '贵州省',
-            object: '选择区域',
+            object: '贵阳市',
             dateRange: [dayjs('2023-01', 'YYYY-MM'), dayjs('2023-12', 'YYYY-MM')],
             factors: []
           }}
@@ -352,11 +355,12 @@ const M03Prediction: React.FC = () => {
 
             <Col span={24}>
               <Card title="详细对比分析">
-                <Tabs items={getCurrentIndicators().map(ind => ({
-                  key: ind.key,
-                  label: ind.label,
-                  children: <ReactECharts option={getDetailChartOption(ind.key)} style={{ height: 350, width: '100%' }} />
-                }))} />
+                <Tabs items={getCurrentIndicators()
+                  .map(ind => ({
+                    key: ind.key,
+                    label: ind.label,
+                    children: <ReactECharts option={getDetailChartOption(ind.key)} style={{ height: 350, width: '100%' }} />
+                  }))} />
               </Card>
             </Col>
 
