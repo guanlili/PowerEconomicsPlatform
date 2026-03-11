@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Layout, Card, Tree, Input, Button, Space, Typography, Tooltip, Modal, message, Row, Col } from 'antd';
+import { Layout, Card, Collapse, Tag, Input, Button, Space, Typography, Tooltip, Modal, message, Row, Col } from 'antd';
 import {
   EditOutlined,
   DeleteOutlined,
@@ -7,152 +7,163 @@ import {
   SaveOutlined,
   CloseOutlined,
   ApartmentOutlined,
+  ArrowDownOutlined,
 } from '@ant-design/icons';
 import ReactECharts from 'echarts-for-react';
 import * as echarts from 'echarts';
 
 const { Content } = Layout;
-const { Title, Text } = Typography;
+const { Text } = Typography;
 
-// ========== Indicator Tree Data ==========
+// ========== Data Types ==========
 
-interface IndicatorNode {
+interface IndicatorItem {
   key: string;
   title: string;
-  children?: IndicatorNode[];
 }
 
-const DEFAULT_INDICATOR_DATA: IndicatorNode[] = [
+interface SceneData {
+  key: string;
+  title: string;
+  inputs: IndicatorItem[];
+  outputs: IndicatorItem[];
+}
+
+// ========== Default Indicator Data (Input / Output separated) ==========
+
+const DEFAULT_SCENES: SceneData[] = [
   {
-    key: '1',
-    title: '电力看经济指标体系',
-    children: [
-      {
-        key: '1-1',
-        title: '区域场景用电量',
-        children: [
-          { key: '1-1-1', title: '区域用电量' },
-          { key: '1-1-2', title: '月内每日最低温度均值' },
-          { key: '1-1-3', title: '月内每日最高温度均值' },
-          { key: '1-1-4', title: '月内总降雨量' },
-          { key: '1-1-5', title: '社会消费品零售总额' },
-          { key: '1-1-6', title: '城镇化率' },
-          { key: '1-1-7', title: '常住人口' },
-          { key: '1-1-8', title: '清洁能源占比' },
-          { key: '1-1-9', title: '发电量' },
-          { key: '1-1-10', title: '生产总值(GDP)' },
-          { key: '1-1-11', title: '固定资产投资' },
-          { key: '1-1-12', title: '经济增速' },
-          { key: '1-1-13', title: '经济增加值' },
-          { key: '1-1-14', title: '生产价格指数(PPI)' },
-          { key: '1-1-15', title: '居民消费价格指数(CPI)' },
-          { key: '1-1-16', title: '规模以上工业增加值' },
-          { key: '1-1-17', title: '进出口总额' },
-        ],
-      },
-      {
-        key: '1-2',
-        title: '产业场景用电量',
-        children: [
-          { key: '1-2-1', title: '产业用电量' },
-          { key: '1-2-2', title: '月内每日最低温度均值' },
-          { key: '1-2-3', title: '月内每日最高温度均值' },
-          { key: '1-2-4', title: '月内总降雨量' },
-          { key: '1-2-5', title: '劳动生产率' },
-          { key: '1-2-6', title: '消费者价格指数(CPI)' },
-          { key: '1-2-7', title: '电网负荷率' },
-          { key: '1-2-8', title: '农产品价格指数' },
-          { key: '1-2-9', title: '相对湿度' },
-          { key: '1-2-10', title: '畜牧业产值' },
-          { key: '1-2-11', title: '水产品产量' },
-          { key: '1-2-12', title: '能源价格指数' },
-          { key: '1-2-13', title: '煤炭价格指数' },
-          { key: '1-2-14', title: '芯片/集成电路产量' },
-          { key: '1-2-15', title: '电动机产量' },
-          { key: '1-2-16', title: '化学农药原药' },
-          { key: '1-2-17', title: '汽车产量' },
-          { key: '1-2-18', title: '火电机组利用小时数' },
-          { key: '1-2-19', title: '社会消费品零售总额' },
-          { key: '1-2-20', title: '金融业增加值' },
-          { key: '1-2-21', title: '物流运输量' },
-          { key: '1-2-22', title: '仓储设施总面积' },
-          { key: '1-2-23', title: '5G基站数量' },
-          { key: '1-2-24', title: '旅游收入' },
-          { key: '1-2-25', title: '旅游人次' },
-          { key: '1-2-26', title: '清洁能源占比' },
-          { key: '1-2-27', title: '产业增加值' },
-          { key: '1-2-28', title: '增加值增速' },
-          { key: '1-2-29', title: '产业增加值占GDP比重' },
-          { key: '1-2-30', title: '进出口总额' },
-        ],
-      },
-      {
-        key: '1-3',
-        title: '行业场景用电量',
-        children: [
-          { key: '1-3-1', title: '行业用电量' },
-          { key: '1-3-2', title: '月内每日最低温度均值' },
-          { key: '1-3-3', title: '月内每日最高温度均值' },
-          { key: '1-3-4', title: '月内总降雨量' },
-          { key: '1-3-5', title: '有色金属现货均价' },
-          { key: '1-3-6', title: '有色金属产量' },
-          { key: '1-3-7', title: '产成品存货' },
-          { key: '1-3-8', title: '用电价格' },
-          { key: '1-3-9', title: '行业绿电消纳占比' },
-          { key: '1-3-10', title: '钢材产量' },
-          { key: '1-3-11', title: '铁矿石进口均价' },
-          { key: '1-3-12', title: '钢材综合价格指数' },
-          { key: '1-3-13', title: '负荷峰谷差率' },
-          { key: '1-3-14', title: '化工产品价格指数（CCPI）' },
-          { key: '1-3-15', title: '原油购进价格' },
-          { key: '1-3-16', title: '煤炭购进价格' },
-          { key: '1-3-17', title: '行业产能利用率' },
-          { key: '1-3-18', title: '供电可靠性' },
-          { key: '1-3-19', title: '固定资产投资完成额' },
-          { key: '1-3-20', title: '房地产开发投资额' },
-          { key: '1-3-21', title: '水泥产量' },
-          { key: '1-3-22', title: '玻璃产量' },
-          { key: '1-3-23', title: '用电负荷率' },
-          { key: '1-3-24', title: '电煤购进价格指数' },
-          { key: '1-3-25', title: '电力、热力生产和供应业固定资产投资额' },
-          { key: '1-3-26', title: '发电设备平均利用小时数' },
-          { key: '1-3-27', title: '布伦特原油现货价格' },
-          { key: '1-3-28', title: '石油煤炭加工行业出厂价格指数' },
-          { key: '1-3-29', title: '行业固定资产投资额' },
-          { key: '1-3-30', title: '可再生能源消纳率' },
-          { key: '1-3-31', title: '计算机通信和其他电子设备制造业出厂价格指数' },
-          { key: '1-3-32', title: '集成电路进口均价' },
-          { key: '1-3-33', title: '出口交货值' },
-          { key: '1-3-34', title: '绿电与可再生能源证书（绿证）认购权重' },
-          { key: '1-3-35', title: '金属价格' },
-          { key: '1-3-36', title: '电气机械和器材制造业出厂价格指数' },
-          { key: '1-3-37', title: '月用电最大负荷' },
-          { key: '1-3-38', title: '汽车制造业出厂价格指数' },
-          { key: '1-3-39', title: '汽车产量' },
-          { key: '1-3-40', title: '汽车销量' },
-          { key: '1-3-41', title: '汽车制造业固定资产投资额' },
-          { key: '1-3-42', title: '通用设备制造业出厂价格指数' },
-          { key: '1-3-43', title: '黑色金属购进价格' },
-          { key: '1-3-44', title: '通用设备制造业固定资产投资额' },
-          { key: '1-3-45', title: '行业研发经费投入' },
-          { key: '1-3-46', title: '互联网宽带接入用户数' },
-          { key: '1-3-47', title: '从业人员平均工资' },
-          { key: '1-3-48', title: '信息技术服务出口额' },
-          { key: '1-3-49', title: '备用电源供电保障时长' },
-          { key: '1-3-50', title: '酒、饮料和精制茶制造业出厂价格指数' },
-          { key: '1-3-51', title: '社会消费品零售总额' },
-          { key: '1-3-52', title: '粮食购进价格' },
-          { key: '1-3-53', title: '原料购进价格' },
-          { key: '1-3-54', title: '农产品购进价格' },
-          { key: '1-3-55', title: '旅游及餐饮业营业额' },
-          { key: '1-3-56', title: '行业增加值' },
-          { key: '1-3-57', title: '行业总产值' },
-          { key: '1-3-58', title: '行业利润率' },
-          { key: '1-3-59', title: '营业收入' },
-          { key: '1-3-60', title: '利润总额' },
-          { key: '1-3-61', title: '进出口额' },
-        ],
-      },
+    key: '1-1',
+    title: '区域场景用电量',
+    inputs: [
+      { key: '1-1-i1', title: '区域用电量' },
+      { key: '1-1-i2', title: '月内每日最低温度均值' },
+      { key: '1-1-i3', title: '月内每日最高温度均值' },
+      { key: '1-1-i4', title: '月内总降雨量' },
+      { key: '1-1-i5', title: '社会消费品零售总额' },
+      { key: '1-1-i6', title: '城镇化率' },
+      { key: '1-1-i7', title: '常住人口' },
+      { key: '1-1-i8', title: '清洁能源占比' },
+      { key: '1-1-i9', title: '发电量' },
+    ],
+    outputs: [
+      { key: '1-1-o1', title: '生产总值(GDP)' },
+      { key: '1-1-o2', title: '固定资产投资' },
+      { key: '1-1-o3', title: '居民消费价格指数(CPI)' },
+      { key: '1-1-o4', title: '规模以上工业增加值' },
+      { key: '1-1-o5', title: '生产价格指数(PPI)' },
+      { key: '1-1-o6', title: '经济增加值' },
+      { key: '1-1-o7', title: '进出口总额' },
+      { key: '1-1-o8', title: '经济增速' },
+    ],
+  },
+  {
+    key: '1-2',
+    title: '产业场景用电量',
+    inputs: [
+      { key: '1-2-i1', title: '产业用电量' },
+      { key: '1-2-i2', title: '月内每日最低温度均值' },
+      { key: '1-2-i3', title: '月内每日最高温度均值' },
+      { key: '1-2-i4', title: '月内总降雨量' },
+      { key: '1-2-i5', title: '劳动生产率' },
+      { key: '1-2-i6', title: '消费者价格指数(CPI)' },
+      { key: '1-2-i7', title: '电网负荷率' },
+      { key: '1-2-i8', title: '农产品价格指数' },
+      { key: '1-2-i9', title: '相对湿度' },
+      { key: '1-2-i10', title: '畜牧业产值' },
+      { key: '1-2-i11', title: '水产品产量' },
+      { key: '1-2-i12', title: '能源价格指数' },
+      { key: '1-2-i13', title: '煤炭价格指数' },
+      { key: '1-2-i14', title: '芯片/集成电路产量' },
+      { key: '1-2-i15', title: '电动机产量' },
+      { key: '1-2-i16', title: '化学农药原药' },
+      { key: '1-2-i17', title: '汽车产量' },
+      { key: '1-2-i18', title: '火电机组利用小时数' },
+      { key: '1-2-i19', title: '社会消费品零售总额' },
+      { key: '1-2-i20', title: '金融业增加值' },
+      { key: '1-2-i21', title: '物流运输量' },
+      { key: '1-2-i22', title: '仓储设施总面积' },
+      { key: '1-2-i23', title: '5G基站数量' },
+      { key: '1-2-i24', title: '旅游收入' },
+      { key: '1-2-i25', title: '旅游人次' },
+      { key: '1-2-i26', title: '清洁能源占比' },
+    ],
+    outputs: [
+      { key: '1-2-o1', title: '产业增加值' },
+      { key: '1-2-o2', title: '增加值增速' },
+      { key: '1-2-o3', title: '进出口总额' },
+      { key: '1-2-o4', title: '全民消费品零售总额' },
+      { key: '1-2-o5', title: '居民人均可支配收入' },
+      { key: '1-2-o6', title: '产业增加值占GDP比重' },
+    ],
+  },
+  {
+    key: '1-3',
+    title: '行业场景用电量',
+    inputs: [
+      { key: '1-3-i1', title: '行业用电量' },
+      { key: '1-3-i2', title: '月内每日最低温度均值' },
+      { key: '1-3-i3', title: '月内每日最高温度均值' },
+      { key: '1-3-i4', title: '月内总降雨量' },
+      { key: '1-3-i5', title: '有色金属现货均价' },
+      { key: '1-3-i6', title: '有色金属产量' },
+      { key: '1-3-i7', title: '产成品存货' },
+      { key: '1-3-i8', title: '用电价格' },
+      { key: '1-3-i9', title: '行业绿电消纳占比' },
+      { key: '1-3-i10', title: '钢材产量' },
+      { key: '1-3-i11', title: '铁矿石进口均价' },
+      { key: '1-3-i12', title: '钢材综合价格指数' },
+      { key: '1-3-i13', title: '负荷峰谷差率' },
+      { key: '1-3-i14', title: '化工产品价格指数（CCPI）' },
+      { key: '1-3-i15', title: '原油购进价格' },
+      { key: '1-3-i16', title: '煤炭购进价格' },
+      { key: '1-3-i17', title: '行业产能利用率' },
+      { key: '1-3-i18', title: '供电可靠性' },
+      { key: '1-3-i19', title: '固定资产投资完成额' },
+      { key: '1-3-i20', title: '房地产开发投资额' },
+      { key: '1-3-i21', title: '水泥产量' },
+      { key: '1-3-i22', title: '玻璃产量' },
+      { key: '1-3-i23', title: '用电负荷率' },
+      { key: '1-3-i24', title: '电煤购进价格指数' },
+      { key: '1-3-i25', title: '电力、热力生产和供应业固定资产投资额' },
+      { key: '1-3-i26', title: '发电设备平均利用小时数' },
+      { key: '1-3-i27', title: '布伦特原油现货价格' },
+      { key: '1-3-i28', title: '石油煤炭加工行业出厂价格指数' },
+      { key: '1-3-i29', title: '行业固定资产投资额' },
+      { key: '1-3-i30', title: '可再生能源消纳率' },
+      { key: '1-3-i31', title: '计算机通信和其他电子设备制造业出厂价格指数' },
+      { key: '1-3-i32', title: '集成电路进口均价' },
+      { key: '1-3-i33', title: '出口交货值' },
+      { key: '1-3-i34', title: '绿电与可再生能源证书（绿证）认购权重' },
+      { key: '1-3-i35', title: '金属价格' },
+      { key: '1-3-i36', title: '电气机械和器材制造业出厂价格指数' },
+      { key: '1-3-i37', title: '月用电最大负荷' },
+      { key: '1-3-i38', title: '汽车制造业出厂价格指数' },
+      { key: '1-3-i39', title: '汽车产量' },
+      { key: '1-3-i40', title: '汽车销量' },
+      { key: '1-3-i41', title: '汽车制造业固定资产投资额' },
+      { key: '1-3-i42', title: '通用设备制造业出厂价格指数' },
+      { key: '1-3-i43', title: '黑色金属购进价格' },
+      { key: '1-3-i44', title: '通用设备制造业固定资产投资额' },
+      { key: '1-3-i45', title: '行业研发经费投入' },
+      { key: '1-3-i46', title: '互联网宽带接入用户数' },
+      { key: '1-3-i47', title: '从业人员平均工资' },
+      { key: '1-3-i48', title: '信息技术服务出口额' },
+      { key: '1-3-i49', title: '备用电源供电保障时长' },
+      { key: '1-3-i50', title: '酒、饮料和精制茶制造业出厂价格指数' },
+      { key: '1-3-i51', title: '社会消费品零售总额' },
+      { key: '1-3-i52', title: '粮食购进价格' },
+      { key: '1-3-i53', title: '原料购进价格' },
+      { key: '1-3-i54', title: '农产品购进价格' },
+      { key: '1-3-i55', title: '旅游及餐饮业营业额' },
+    ],
+    outputs: [
+      { key: '1-3-o1', title: '行业增加值' },
+      { key: '1-3-o2', title: '行业总产值' },
+      { key: '1-3-o3', title: '行业利润率' },
+      { key: '1-3-o4', title: '营业收入' },
+      { key: '1-3-o5', title: '利润总额' },
+      { key: '1-3-o6', title: '进出口额' },
     ],
   },
 ];
@@ -171,70 +182,144 @@ const CITY_ELECTRICITY_DATA: Record<string, { consumption: number; unit: string 
   '黔南布依族苗族自治州': { consumption: 103.1, unit: '亿千瓦时' },
 };
 
-// ========== Helper Functions ==========
+// ========== Helpers ==========
 
-let keyCounter = 1000;
+let keyCounter = 2000;
 const generateKey = () => `node-${++keyCounter}`;
 
-const deepCloneTree = (nodes: IndicatorNode[]): IndicatorNode[] =>
-  nodes.map((n) => ({
-    ...n,
-    children: n.children ? deepCloneTree(n.children) : undefined,
+const deepCloneScenes = (scenes: SceneData[]): SceneData[] =>
+  scenes.map((s) => ({
+    ...s,
+    inputs: s.inputs.map((i) => ({ ...i })),
+    outputs: s.outputs.map((o) => ({ ...o })),
   }));
 
-const updateNodeInTree = (
-  nodes: IndicatorNode[],
-  key: string,
-  updater: (node: IndicatorNode) => IndicatorNode | null
-): IndicatorNode[] => {
-  const result: IndicatorNode[] = [];
-  for (const node of nodes) {
-    if (node.key === key) {
-      const updated = updater(node);
-      if (updated) result.push(updated);
-      // null means delete
-    } else {
-      result.push({
-        ...node,
-        children: node.children
-          ? updateNodeInTree(node.children, key, updater)
-          : undefined,
-      });
-    }
+// ========== Sub-Components ==========
+
+/** Flow divider arrow between input and output sections */
+const FlowDivider: React.FC = () => (
+  <div style={{ display: 'flex', alignItems: 'center', margin: '14px 0', gap: 8 }}>
+    <div style={{ flex: 1, height: 1, background: 'linear-gradient(to right, #1677ff, #d9d9d9)' }} />
+    <div
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 4,
+        padding: '3px 14px',
+        background: '#f6ffed',
+        borderRadius: 12,
+        border: '1px solid #b7eb8f',
+        fontSize: 12,
+        color: '#389e0d',
+        fontWeight: 500,
+        whiteSpace: 'nowrap',
+      }}
+    >
+      <ArrowDownOutlined />
+      预测输出
+    </div>
+    <div style={{ flex: 1, height: 1, background: 'linear-gradient(to left, #52c41a, #d9d9d9)' }} />
+  </div>
+);
+
+/** Section header for input/output groups */
+const SectionHeader: React.FC<{
+  type: 'input' | 'output';
+  count: number;
+  onAdd: () => void;
+}> = ({ type, count, onAdd }) => (
+  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+    <Space size={6}>
+      <Tag color={type === 'input' ? 'blue' : 'green'} style={{ margin: 0 }}>
+        {type === 'input' ? '输入指标' : '输出指标'}
+      </Tag>
+      <Text type="secondary" style={{ fontSize: 12 }}>({count}项)</Text>
+    </Space>
+    <Tooltip title={`添加${type === 'input' ? '输入' : '输出'}指标`}>
+      <Button type="text" size="small" icon={<PlusOutlined />} onClick={onAdd} />
+    </Tooltip>
+  </div>
+);
+
+/** Single indicator row with hover edit/delete actions */
+const IndicatorRow: React.FC<{
+  item: IndicatorItem;
+  type: 'input' | 'output';
+  isEditing: boolean;
+  editValue: string;
+  onEditValueChange: (val: string) => void;
+  onStartEdit: () => void;
+  onSave: () => void;
+  onCancel: () => void;
+  onDelete: () => void;
+}> = ({ item, type, isEditing, editValue, onEditValueChange, onStartEdit, onSave, onCancel, onDelete }) => {
+  const borderColor = type === 'input' ? '#1677ff' : '#52c41a';
+
+  if (isEditing) {
+    return (
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          padding: '4px 8px',
+          marginBottom: 2,
+          borderLeft: `3px solid ${borderColor}`,
+          borderRadius: '0 4px 4px 0',
+          background: '#fafafa',
+        }}
+      >
+        <Input
+          size="small"
+          value={editValue}
+          onChange={(e) => onEditValueChange(e.target.value)}
+          onPressEnter={onSave}
+          onKeyDown={(e) => e.key === 'Escape' && onCancel()}
+          style={{ flex: 1, marginRight: 4 }}
+          autoFocus
+        />
+        <Button type="link" size="small" icon={<SaveOutlined />} onClick={onSave} style={{ color: '#52c41a', padding: '0 2px' }} />
+        <Button type="link" size="small" icon={<CloseOutlined />} onClick={onCancel} style={{ color: '#ff4d4f', padding: '0 2px' }} />
+      </div>
+    );
   }
-  return result;
+
+  return (
+    <div
+      className="indicator-row"
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        padding: '4px 8px',
+        marginBottom: 2,
+        borderLeft: `3px solid ${borderColor}`,
+        borderRadius: '0 4px 4px 0',
+        background: '#fafafa',
+        transition: 'background 0.2s',
+        cursor: 'default',
+      }}
+    >
+      <Text style={{ flex: 1, fontSize: 13 }} ellipsis={{ tooltip: item.title }}>
+        {item.title}
+      </Text>
+      <span className="indicator-actions" style={{ opacity: 0, transition: 'opacity 0.2s', whiteSpace: 'nowrap' }}>
+        <Tooltip title="编辑">
+          <Button type="link" size="small" icon={<EditOutlined />} onClick={onStartEdit} style={{ padding: '0 3px' }} />
+        </Tooltip>
+        <Tooltip title="删除">
+          <Button type="link" size="small" danger icon={<DeleteOutlined />} onClick={onDelete} style={{ padding: '0 3px' }} />
+        </Tooltip>
+      </span>
+    </div>
+  );
 };
 
-const addChildToNode = (
-  nodes: IndicatorNode[],
-  parentKey: string,
-  child: IndicatorNode
-): IndicatorNode[] =>
-  nodes.map((node) => {
-    if (node.key === parentKey) {
-      return {
-        ...node,
-        children: [...(node.children || []), child],
-      };
-    }
-    return {
-      ...node,
-      children: node.children
-        ? addChildToNode(node.children, parentKey, child)
-        : undefined,
-    };
-  });
-
-// ========== Component ==========
+// ========== Main Component ==========
 
 const M04IndicatorSystem: React.FC = () => {
-  const [treeData, setTreeData] = useState<IndicatorNode[]>(
-    deepCloneTree(DEFAULT_INDICATOR_DATA)
-  );
+  const [scenes, setScenes] = useState<SceneData[]>(deepCloneScenes(DEFAULT_SCENES));
   const [editingKey, setEditingKey] = useState<string | null>(null);
   const [editValue, setEditValue] = useState('');
   const [mapReady, setMapReady] = useState(false);
-  const [expandedKeys, setExpandedKeys] = useState<React.Key[]>(['1', '1-1', '1-2', '1-3']);
 
   // Load GeoJSON and register map
   useEffect(() => {
@@ -250,173 +335,151 @@ const M04IndicatorSystem: React.FC = () => {
       });
   }, []);
 
-  // ---- Tree edit handlers ----
+  // ---- Edit handlers ----
 
-  const handleEdit = useCallback((key: string, currentTitle: string) => {
+  const handleStartEdit = useCallback((key: string, title: string) => {
     setEditingKey(key);
-    setEditValue(currentTitle);
+    setEditValue(title);
   }, []);
 
-  const handleSaveEdit = useCallback(() => {
-    if (!editingKey || !editValue.trim()) {
-      message.warning('指标名称不能为空');
-      return;
-    }
-    setTreeData((prev) =>
-      updateNodeInTree(prev, editingKey, (node) => ({
-        ...node,
-        title: editValue.trim(),
-      }))
-    );
-    setEditingKey(null);
-    setEditValue('');
-    message.success('修改成功');
-  }, [editingKey, editValue]);
+  const handleSaveEdit = useCallback(
+    (sceneKey: string, type: 'input' | 'output') => {
+      if (!editingKey || !editValue.trim()) {
+        message.warning('指标名称不能为空');
+        return;
+      }
+      const field = type === 'input' ? 'inputs' : 'outputs';
+      setScenes((prev) =>
+        prev.map((s) =>
+          s.key !== sceneKey
+            ? s
+            : {
+                ...s,
+                [field]: s[field].map((item) =>
+                  item.key === editingKey ? { ...item, title: editValue.trim() } : item
+                ),
+              }
+        )
+      );
+      setEditingKey(null);
+      setEditValue('');
+      message.success('修改成功');
+    },
+    [editingKey, editValue]
+  );
 
   const handleCancelEdit = useCallback(() => {
     setEditingKey(null);
     setEditValue('');
   }, []);
 
-  const handleDelete = useCallback((key: string, title: string) => {
+  const handleDelete = useCallback((sceneKey: string, type: 'input' | 'output', itemKey: string, title: string) => {
     Modal.confirm({
       title: '确认删除',
       content: `确定要删除指标"${title}"吗？`,
       okText: '确定',
       cancelText: '取消',
       onOk: () => {
-        setTreeData((prev) => updateNodeInTree(prev, key, () => null));
+        const field = type === 'input' ? 'inputs' : 'outputs';
+        setScenes((prev) =>
+          prev.map((s) =>
+            s.key !== sceneKey ? s : { ...s, [field]: s[field].filter((item) => item.key !== itemKey) }
+          )
+        );
         message.success('删除成功');
       },
     });
   }, []);
 
-  const handleAddChild = useCallback(
-    (parentKey: string) => {
-      const newKey = generateKey();
-      const newNode: IndicatorNode = {
-        key: newKey,
-        title: '新指标',
-      };
-      setTreeData((prev) => addChildToNode(prev, parentKey, newNode));
-      setExpandedKeys((prev) =>
-        prev.includes(parentKey) ? prev : [...prev, parentKey]
-      );
-      // Start editing the new node immediately
-      setEditingKey(newKey);
-      setEditValue('新指标');
-      message.info('已添加新指标，请编辑名称');
-    },
-    []
-  );
+  const handleAdd = useCallback((sceneKey: string, type: 'input' | 'output') => {
+    const newKey = generateKey();
+    const field = type === 'input' ? 'inputs' : 'outputs';
+    setScenes((prev) =>
+      prev.map((s) =>
+        s.key !== sceneKey ? s : { ...s, [field]: [...s[field], { key: newKey, title: '新指标' }] }
+      )
+    );
+    setEditingKey(newKey);
+    setEditValue('新指标');
+  }, []);
 
-  const handleResetTree = useCallback(() => {
+  const handleReset = useCallback(() => {
     Modal.confirm({
       title: '重置指标体系',
       content: '确定要恢复默认指标体系吗？所有修改将丢失。',
       okText: '确定',
       cancelText: '取消',
       onOk: () => {
-        setTreeData(deepCloneTree(DEFAULT_INDICATOR_DATA));
+        setScenes(deepCloneScenes(DEFAULT_SCENES));
         setEditingKey(null);
         setEditValue('');
-        setExpandedKeys(['1', '1-1', '1-2', '1-3']);
         message.success('已恢复默认指标体系');
       },
     });
   }, []);
 
-  // ---- Tree node renderer ----
+  // ---- Build Collapse items ----
 
-  const renderTreeTitle = (node: IndicatorNode) => {
-    const isEditing = editingKey === node.key;
-    const isRoot = node.key === '1';
-
-    if (isEditing) {
-      return (
-        <Space size={4}>
-          <Input
-            size="small"
-            value={editValue}
-            onChange={(e) => setEditValue(e.target.value)}
-            onPressEnter={handleSaveEdit}
-            onKeyDown={(e) => e.key === 'Escape' && handleCancelEdit()}
-            style={{ width: 200 }}
-            autoFocus
+  const collapseItems = scenes.map((scene) => ({
+    key: scene.key,
+    label: (
+      <Space>
+        <span style={{ fontWeight: 600, fontSize: 14 }}>{scene.title}</span>
+        <Tag
+          style={{
+            margin: 0,
+            background: '#e6f4ff',
+            color: '#1677ff',
+            border: '1px solid #91caff',
+            fontSize: 11,
+            lineHeight: '18px',
+          }}
+        >
+          输入 {scene.inputs.length} + 输出 {scene.outputs.length}
+        </Tag>
+      </Space>
+    ),
+    children: (
+      <div>
+        {/* Input section */}
+        <SectionHeader type="input" count={scene.inputs.length} onAdd={() => handleAdd(scene.key, 'input')} />
+        {scene.inputs.map((item) => (
+          <IndicatorRow
+            key={item.key}
+            item={item}
+            type="input"
+            isEditing={editingKey === item.key}
+            editValue={editValue}
+            onEditValueChange={setEditValue}
+            onStartEdit={() => handleStartEdit(item.key, item.title)}
+            onSave={() => handleSaveEdit(scene.key, 'input')}
+            onCancel={handleCancelEdit}
+            onDelete={() => handleDelete(scene.key, 'input', item.key, item.title)}
           />
-          <Button
-            type="link"
-            size="small"
-            icon={<SaveOutlined />}
-            onClick={handleSaveEdit}
-            style={{ color: '#52c41a' }}
-          />
-          <Button
-            type="link"
-            size="small"
-            icon={<CloseOutlined />}
-            onClick={handleCancelEdit}
-            style={{ color: '#ff4d4f' }}
-          />
-        </Space>
-      );
-    }
+        ))}
 
-    return (
-      <span className="tree-node-title">
-        <span>{node.title}</span>
-        <span className="tree-node-actions" style={{ marginLeft: 8, opacity: 0, transition: 'opacity 0.2s' }}>
-          <Tooltip title="编辑">
-            <Button
-              type="link"
-              size="small"
-              icon={<EditOutlined />}
-              onClick={(e) => {
-                e.stopPropagation();
-                handleEdit(node.key, node.title);
-              }}
-              style={{ padding: '0 4px' }}
-            />
-          </Tooltip>
-          <Tooltip title="添加子指标">
-            <Button
-              type="link"
-              size="small"
-              icon={<PlusOutlined />}
-              onClick={(e) => {
-                e.stopPropagation();
-                handleAddChild(node.key);
-              }}
-              style={{ padding: '0 4px' }}
-            />
-          </Tooltip>
-          {!isRoot && (
-            <Tooltip title="删除">
-              <Button
-                type="link"
-                size="small"
-                danger
-                icon={<DeleteOutlined />}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleDelete(node.key, node.title);
-                }}
-                style={{ padding: '0 4px' }}
-              />
-            </Tooltip>
-          )}
-        </span>
-      </span>
-    );
-  };
+        {/* Flow arrow divider */}
+        <FlowDivider />
 
-  // Convert IndicatorNode[] to Ant Design Tree data format
-  const convertToAntTreeData = (nodes: IndicatorNode[]): any[] =>
-    nodes.map((node) => ({
-      key: node.key,
-      title: renderTreeTitle(node),
-      children: node.children ? convertToAntTreeData(node.children) : undefined,
-    }));
+        {/* Output section */}
+        <SectionHeader type="output" count={scene.outputs.length} onAdd={() => handleAdd(scene.key, 'output')} />
+        {scene.outputs.map((item) => (
+          <IndicatorRow
+            key={item.key}
+            item={item}
+            type="output"
+            isEditing={editingKey === item.key}
+            editValue={editValue}
+            onEditValueChange={setEditValue}
+            onStartEdit={() => handleStartEdit(item.key, item.title)}
+            onSave={() => handleSaveEdit(scene.key, 'output')}
+            onCancel={handleCancelEdit}
+            onDelete={() => handleDelete(scene.key, 'output', item.key, item.title)}
+          />
+        ))}
+      </div>
+    ),
+  }));
 
   // ---- Map chart option ----
 
@@ -464,7 +527,6 @@ const M04IndicatorSystem: React.FC = () => {
           show: true,
           fontSize: 10,
           formatter: (params: any) => {
-            // Shorten long autonomous prefecture names for display
             const name = params.name as string;
             if (name.includes('黔西南')) return '黔西南';
             if (name.includes('黔东南')) return '黔东南';
@@ -490,6 +552,14 @@ const M04IndicatorSystem: React.FC = () => {
   return (
     <Layout style={{ padding: 16, background: '#f0f2f5', minHeight: 'calc(100vh - 64px)' }}>
       <Content>
+        <style>{`
+          .indicator-row:hover {
+            background: #e6f7ff !important;
+          }
+          .indicator-row:hover .indicator-actions {
+            opacity: 1 !important;
+          }
+        `}</style>
         <Row gutter={16} style={{ height: '100%' }}>
           {/* Left: Map */}
           <Col xs={24} lg={14}>
@@ -516,41 +586,33 @@ const M04IndicatorSystem: React.FC = () => {
             </Card>
           </Col>
 
-          {/* Right: Indicator Tree */}
+          {/* Right: Indicator System */}
           <Col xs={24} lg={10}>
             <Card
               title={
                 <Space>
                   <ApartmentOutlined />
-                  <span style={{ fontSize: 16, fontWeight: 600 }}>指标体系</span>
+                  <span style={{ fontSize: 16, fontWeight: 600 }}>电力看经济指标体系</span>
                 </Space>
               }
               extra={
-                <Button size="small" onClick={handleResetTree}>
+                <Button size="small" onClick={handleReset}>
                   恢复默认
                 </Button>
               }
               style={{ height: '100%' }}
-              styles={{ body: { overflow: 'auto', maxHeight: 'calc(100vh - 170px)' } }}
+              styles={{ body: { overflow: 'auto', maxHeight: 'calc(100vh - 170px)', padding: '12px 16px' } }}
             >
               <div style={{ marginBottom: 12 }}>
-                <Text type="secondary">
-                  鼠标悬停指标可进行编辑、添加子指标或删除操作
+                <Text type="secondary" style={{ fontSize: 12 }}>
+                  每个场景包含输入指标和输出指标，鼠标悬停指标可编辑或删除
                 </Text>
               </div>
-              <style>{`
-                .indicator-tree .tree-node-title:hover .tree-node-actions {
-                  opacity: 1 !important;
-                }
-              `}</style>
-              <Tree
-                className="indicator-tree"
-                treeData={convertToAntTreeData(treeData)}
-                defaultExpandAll={false}
-                expandedKeys={expandedKeys}
-                onExpand={(keys) => setExpandedKeys(keys)}
-                blockNode
-                showLine={{ showLeafIcon: false }}
+              <Collapse
+                accordion
+                defaultActiveKey={['1-1']}
+                items={collapseItems}
+                style={{ background: 'transparent', border: 'none' }}
               />
             </Card>
           </Col>
