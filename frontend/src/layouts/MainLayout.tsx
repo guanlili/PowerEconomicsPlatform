@@ -15,7 +15,6 @@ const MainLayout: React.FC = () => {
       key: '/m01',
       icon: <DatabaseOutlined />,
       label: '数据管理 (M01)',
-      disabled: true, // As per PRD
     },
     {
       key: '/m02',
