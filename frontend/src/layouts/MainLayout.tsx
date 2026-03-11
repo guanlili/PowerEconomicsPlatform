@@ -1,7 +1,7 @@
 import React from 'react';
 import { Layout, Menu, Typography, Button } from 'antd';
 import { useNavigate, useLocation, Outlet } from 'react-router-dom';
-import { LineChartOutlined, BarChartOutlined, DatabaseOutlined } from '@ant-design/icons';
+import { LineChartOutlined, BarChartOutlined, DatabaseOutlined, ApartmentOutlined } from '@ant-design/icons';
 
 const { Header, Content } = Layout;
 const { Title } = Typography;
@@ -26,6 +26,11 @@ const MainLayout: React.FC = () => {
       key: '/m03',
       icon: <LineChartOutlined />,
       label: '经济预测 (M03)',
+    },
+    {
+      key: '/m04',
+      icon: <ApartmentOutlined />,
+      label: '指标体系 (M04)',
     },
   ];
 

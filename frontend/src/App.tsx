@@ -5,6 +5,7 @@ import zhCN from 'antd/locale/zh_CN';
 import MainLayout from './layouts/MainLayout';
 import M02Analysis from './pages/M02Analysis';
 import M03Prediction from './pages/M03Prediction';
+import M04IndicatorSystem from './pages/M04IndicatorSystem';
 import Login from './pages/Login';
 
 // Customize Ant Design locale to use Chinese month names in inputs
@@ -43,6 +44,7 @@ const App: React.FC = () => {
             <Route index element={<Navigate to="/m02" replace />} />
             <Route path="m02" element={<ProtectedRoute element={<M02Analysis />} />} />
             <Route path="m03" element={<ProtectedRoute element={<M03Prediction />} />} />
+            <Route path="m04" element={<ProtectedRoute element={<M04IndicatorSystem />} />} />
           </Route>
         </Routes>
       </Router>
