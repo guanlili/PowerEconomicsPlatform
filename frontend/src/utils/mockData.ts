@@ -13,19 +13,10 @@ export const generateDates = (start: string, end: string) => {
 };
 
 export const generateFactorData = (dates: string[], factorNames: string[]) => {
-  return dates.map((date, index) => {
+  return dates.map(date => {
     const row: any = { date };
-    factorNames.forEach((name, fIdx) => {
-      // Generate more realistic data with trend, seasonality and noise
-      // Keep values in middle range (20-80) to avoid boundary effects
-      const baseValue = 35 + (fIdx * 10); // Different base values for different factors (35-65 range)
-      const trend = index * 0.3; // Slight upward trend
-      const seasonality = Math.sin((index % 12) / 12 * Math.PI * 2) * 8; // Seasonal variation (smaller amplitude)
-      const noise = (Math.random() - 0.5) * 6; // Random noise (smaller)
-      let value = baseValue + trend + seasonality + noise;
-      // Clamp to safe middle range 20-80, avoiding boundaries
-      value = Math.max(20, Math.min(80, value));
-      row[name] = parseFloat(value.toFixed(2));
+    factorNames.forEach(name => {
+      row[name] = Math.random() * 100; // Random value 0-100
     });
     return row;
   });
