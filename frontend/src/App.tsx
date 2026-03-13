@@ -42,11 +42,11 @@ const App: React.FC = () => {
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/" element={<MainLayout />}>
-            <Route index element={<Navigate to="/m01" replace />} />
-            <Route path="m01" element={<ProtectedRoute element={<M01DataManagement />} />} />
+            <Route index element={<Navigate to="/m04" replace />} />
+            <Route path="m04" element={<ProtectedRoute element={<M04IndicatorSystem />} />} />
             <Route path="m02" element={<ProtectedRoute element={<M02Analysis />} />} />
             <Route path="m03" element={<ProtectedRoute element={<M03Prediction />} />} />
-            <Route path="m04" element={<ProtectedRoute element={<M04IndicatorSystem />} />} />
+            <Route path="m01" element={<ProtectedRoute element={<M01DataManagement />} />} />
           </Route>
         </Routes>
       </Router>

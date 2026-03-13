@@ -141,6 +141,8 @@ const M03Prediction: React.FC = () => {
         },
         {
           type: 'value',
+          min: 0,
+          max: 100,
           axisLine: { show: true },
           splitLine: { show: false },
           axisLabel: { formatter: '{value}%' }

@@ -12,24 +12,24 @@ const MainLayout: React.FC = () => {
 
   const menuItems = [
     {
-      key: '/m01',
-      icon: <DatabaseOutlined />,
-      label: '数据管理 (M01)',
+      key: '/m04',
+      icon: <ApartmentOutlined />,
+      label: '指标体系 (M1)',
     },
     {
       key: '/m02',
       icon: <BarChartOutlined />,
-      label: '影响因素分析 (M02)',
+      label: '影响因素分析 (M2)',
     },
     {
       key: '/m03',
       icon: <LineChartOutlined />,
-      label: '经济预测 (M03)',
+      label: '经济预测 (M3)',
     },
     {
-      key: '/m04',
-      icon: <ApartmentOutlined />,
-      label: '指标体系 (M04)',
+      key: '/m01',
+      icon: <DatabaseOutlined />,
+      label: '数据管理 (M4)',
     },
   ];
 

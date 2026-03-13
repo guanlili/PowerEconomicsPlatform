@@ -34,7 +34,7 @@ interface SceneData {
 const DEFAULT_SCENES: SceneData[] = [
   {
     key: '1-1',
-    title: '区域场景用电量',
+    title: '区域场景',
     inputs: [
       { key: '1-1-i1', title: '区域用电量' },
       { key: '1-1-i2', title: '月内每日最低温度均值' },
@@ -59,7 +59,7 @@ const DEFAULT_SCENES: SceneData[] = [
   },
   {
     key: '1-2',
-    title: '产业场景用电量',
+    title: '产业场景',
     inputs: [
       { key: '1-2-i1', title: '产业用电量' },
       { key: '1-2-i2', title: '月内每日最低温度均值' },
@@ -99,7 +99,7 @@ const DEFAULT_SCENES: SceneData[] = [
   },
   {
     key: '1-3',
-    title: '行业场景用电量',
+    title: '行业场景',
     inputs: [
       { key: '1-3-i1', title: '行业用电量' },
       { key: '1-3-i2', title: '月内每日最低温度均值' },
