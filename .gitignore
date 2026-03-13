@@ -1,0 +1,23 @@
+# macOS
+.DS_Store
+
+# Logs
+logs
+*.log
+
+# Dependencies
+node_modules
+
+# Build outputs
+dist
+build
+*.tar
+*.zip
+
+# Environment
+.env
+.env.local
+
+# IDE
+.vscode
+.idea
