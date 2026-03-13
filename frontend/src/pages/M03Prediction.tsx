@@ -1,11 +1,10 @@
 import React, { useState } from 'react';
-import { Layout, Card, Form, Select, DatePicker, Button, Row, Col, Table, Typography, message, Tabs, Input, Cascader, Checkbox } from 'antd';
+import { Layout, Card, Form, Select, DatePicker, Button, Row, Col, Table, Typography, message, Tabs, Input } from 'antd';
 import ReactECharts from 'echarts-for-react';
 import dayjs from 'dayjs';
 import 'dayjs/locale/zh-cn';
 import {
   INDUSTRY_LIST,
-  ECONOMIC_INDICATORS,
   REGION_FACTORS,
   SECTOR_FACTORS_MAP,
   INDUSTRY_FACTORS_MAP,

@@ -843,7 +843,7 @@ const M01DataManagement: React.FC = () => {
           okText="保存"
           cancelText="取消"
           width={520}
-          destroyOnHide
+          destroyOnHidden
         >
           <Form
             form={form}
@@ -893,7 +893,7 @@ const M01DataManagement: React.FC = () => {
                 showSearch
                 placeholder="请选择指标"
                 filterOption={(input, option) =>
-                  (option?.children as string)?.toLowerCase().includes(input.toLowerCase())
+                  (option?.label as string)?.toLowerCase().includes(input.toLowerCase())
                 }
               >
                 {availableIndicators.map((ind) => (
@@ -923,7 +923,7 @@ const M01DataManagement: React.FC = () => {
           onCancel={() => setImportModalOpen(false)}
           footer={null}
           width={480}
-          destroyOnHide
+          destroyOnHidden
         >
           <div style={{ padding: '12px 0' }}>
             <div
