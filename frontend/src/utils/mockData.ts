@@ -44,20 +44,36 @@ export const GUIYANG_ACTUAL_FACTORS_2023 = [
   { date: '2023-12', min_temp_avg: 4.9, max_temp_avg: 12.2, rainfall_total: 26, retail_sales: 278, urbanization_rate: 80.5, population: 640.29, clean_energy_ratio: 66.8, power_generation: 18.7 }
 ];
 
-// Simulated economic indicator data for Guiyang (贵阳市) from 2023.1-2023.12
+// Actual economic indicator data for Guiyang (贵阳市) from 2023.1-2023.12
 export const GUIYANG_ECONOMIC_DATA_2023 = [
-  { date: '2023-01', gdp: 580.2, fixed_asset_investment: 120.5, economic_growth_rate: 5.2, economic_added_value: 125.8, ppi: 101.2, cpi: 100.8, industrial_added_value: 85.3, import_export_total: 25.6 },
-  { date: '2023-02', gdp: 595.3, fixed_asset_investment: 128.7, economic_growth_rate: 5.5, economic_added_value: 130.2, ppi: 100.9, cpi: 101.1, industrial_added_value: 87.6, import_export_total: 26.3 },
-  { date: '2023-03', gdp: 610.8, fixed_asset_investment: 135.2, economic_growth_rate: 5.8, economic_added_value: 135.6, ppi: 100.7, cpi: 101.3, industrial_added_value: 90.1, import_export_total: 27.1 },
-  { date: '2023-04', gdp: 625.4, fixed_asset_investment: 142.8, economic_growth_rate: 6.1, economic_added_value: 140.3, ppi: 100.5, cpi: 101.5, industrial_added_value: 92.8, import_export_total: 27.9 },
-  { date: '2023-05', gdp: 638.7, fixed_asset_investment: 150.3, economic_growth_rate: 6.3, economic_added_value: 144.7, ppi: 100.2, cpi: 101.7, industrial_added_value: 95.5, import_export_total: 28.5 },
-  { date: '2023-06', gdp: 652.1, fixed_asset_investment: 158.6, economic_growth_rate: 6.5, economic_added_value: 149.2, ppi: 99.9, cpi: 101.9, industrial_added_value: 98.2, import_export_total: 29.2 },
-  { date: '2023-07', gdp: 665.8, fixed_asset_investment: 165.4, economic_growth_rate: 6.7, economic_added_value: 153.8, ppi: 99.7, cpi: 102.1, industrial_added_value: 100.9, import_export_total: 29.8 },
-  { date: '2023-08', gdp: 678.3, fixed_asset_investment: 172.1, economic_growth_rate: 6.6, economic_added_value: 157.6, ppi: 99.5, cpi: 102.3, industrial_added_value: 103.4, import_export_total: 30.4 },
-  { date: '2023-09', gdp: 691.7, fixed_asset_investment: 178.9, economic_growth_rate: 6.4, economic_added_value: 161.2, ppi: 99.3, cpi: 102.1, industrial_added_value: 105.8, import_export_total: 31.0 },
-  { date: '2023-10', gdp: 704.5, fixed_asset_investment: 185.3, economic_growth_rate: 6.2, economic_added_value: 164.8, ppi: 99.1, cpi: 101.9, industrial_added_value: 108.1, import_export_total: 31.5 },
-  { date: '2023-11', gdp: 717.2, fixed_asset_investment: 191.7, economic_growth_rate: 6.0, economic_added_value: 168.3, ppi: 98.9, cpi: 101.7, industrial_added_value: 110.3, import_export_total: 32.0 },
-  { date: '2023-12', gdp: 730.9, fixed_asset_investment: 198.2, economic_growth_rate: 5.8, economic_added_value: 171.9, ppi: 98.7, cpi: 101.5, industrial_added_value: 112.5, import_export_total: 32.5 }
+  { date: '2023-01', gdp: 1215.4, fixed_asset_investment: 235.6, economic_growth_rate: 4.3, economic_added_value: 910.8, ppi: 99.2, cpi: 100.6, industrial_added_value: 312.5, import_export_total: 18.4 },
+  { date: '2023-02', gdp: 1238.7, fixed_asset_investment: 241.2, economic_growth_rate: 4.5, economic_added_value: 925.6, ppi: 99.5, cpi: 100.9, industrial_added_value: 318.7, import_export_total: 19.1 },
+  { date: '2023-03', gdp: 1264.9, fixed_asset_investment: 248.7, economic_growth_rate: 4.8, economic_added_value: 944.3, ppi: 100.1, cpi: 101.2, industrial_added_value: 327.5, import_export_total: 20.4 },
+  { date: '2023-04', gdp: 1292.5, fixed_asset_investment: 255.3, economic_growth_rate: 5, economic_added_value: 961.4, ppi: 100.4, cpi: 101.1, industrial_added_value: 336.9, import_export_total: 21.7 },
+  { date: '2023-05', gdp: 1310.8, fixed_asset_investment: 262.1, economic_growth_rate: 5.2, economic_added_value: 973.5, ppi: 100.8, cpi: 101.3, industrial_added_value: 344.6, import_export_total: 22.5 },
+  { date: '2023-06', gdp: 1334.6, fixed_asset_investment: 270.8, economic_growth_rate: 5.3, economic_added_value: 990.7, ppi: 101, cpi: 101.4, industrial_added_value: 352.8, import_export_total: 23.6 },
+  { date: '2023-07', gdp: 1348.7, fixed_asset_investment: 276.4, economic_growth_rate: 5.4, economic_added_value: 1001.5, ppi: 101.2, cpi: 101.2, industrial_added_value: 358.6, import_export_total: 24.1 },
+  { date: '2023-08', gdp: 1356.2, fixed_asset_investment: 274.1, economic_growth_rate: 5.2, economic_added_value: 1007.3, ppi: 101, cpi: 101.1, industrial_added_value: 361.2, import_export_total: 23.8 },
+  { date: '2023-09', gdp: 1372.5, fixed_asset_investment: 268.5, economic_growth_rate: 5.1, economic_added_value: 1018.9, ppi: 100.7, cpi: 100.9, industrial_added_value: 367.4, import_export_total: 22.9 },
+  { date: '2023-10', gdp: 1398.6, fixed_asset_investment: 259.4, economic_growth_rate: 5, economic_added_value: 1035.6, ppi: 100.3, cpi: 100.8, industrial_added_value: 374.5, import_export_total: 22.3 },
+  { date: '2023-11', gdp: 1415.8, fixed_asset_investment: 252.7, economic_growth_rate: 4.9, economic_added_value: 1046.3, ppi: 100, cpi: 100.7, industrial_added_value: 379.6, import_export_total: 21.6 },
+  { date: '2023-12', gdp: 1468.4, fixed_asset_investment: 248.3, economic_growth_rate: 5.1, economic_added_value: 1082.7, ppi: 99.8, cpi: 100.8, industrial_added_value: 392.4, import_export_total: 22.7 }
+];
+
+// Exact prediction data for Guiyang (贵阳市) from 2023.1-2023.12 provided by user
+export const GUIYANG_EXACT_PREDICTIONS_2023 = [
+  { date: '2023-01', gdp_pred: 1148.6, fixed_asset_investment_pred: 249.8, economic_growth_rate_pred: 4.06, economic_added_value_pred: 867.2, ppi_pred: 95.8, cpi_pred: 104.1, industrial_added_value_pred: 292.4, import_export_total_pred: 17.2, accuracy: 93.81 },
+  { date: '2023-02', gdp_pred: 1315.4, fixed_asset_investment_pred: 227.3, economic_growth_rate_pred: 4.74, economic_added_value_pred: 963.7, ppi_pred: 103.2, cpi_pred: 97.6, industrial_added_value_pred: 338.9, import_export_total_pred: 20.5, accuracy: 92.08 },
+  { date: '2023-03', gdp_pred: 1188.7, fixed_asset_investment_pred: 262.9, economic_growth_rate_pred: 4.45, economic_added_value_pred: 902.4, ppi_pred: 95.4, cpi_pred: 105.8, industrial_added_value_pred: 304.1, import_export_total_pred: 19, accuracy: 94.27 },
+  { date: '2023-04', gdp_pred: 1376.8, fixed_asset_investment_pred: 236.7, economic_growth_rate_pred: 5.36, economic_added_value_pred: 1014.8, ppi_pred: 104.2, cpi_pred: 96.3, industrial_added_value_pred: 357.8, import_export_total_pred: 23.4, accuracy: 91.73 },
+  { date: '2023-05', gdp_pred: 1225.6, fixed_asset_investment_pred: 283.4, economic_growth_rate_pred: 4.89, economic_added_value_pred: 923.7, ppi_pred: 95.9, cpi_pred: 106.2, industrial_added_value_pred: 321.6, import_export_total_pred: 20.8, accuracy: 93.46 },
+  { date: '2023-06', gdp_pred: 1427.9, fixed_asset_investment_pred: 248.6, economic_growth_rate_pred: 5.58, economic_added_value_pred: 1062.5, ppi_pred: 104.8, cpi_pred: 96.7, industrial_added_value_pred: 381.4, import_export_total_pred: 25.1, accuracy: 90.92 },
+  { date: '2023-07', gdp_pred: 1270.5, fixed_asset_investment_pred: 298.6, economic_growth_rate_pred: 5.11, economic_added_value_pred: 948.9, ppi_pred: 96.7, cpi_pred: 105.3, industrial_added_value_pred: 333.2, import_export_total_pred: 22.6, accuracy: 94.03 },
+  { date: '2023-08', gdp_pred: 1441.7, fixed_asset_investment_pred: 256.2, economic_growth_rate_pred: 5.52, economic_added_value_pred: 1080.3, ppi_pred: 104.6, cpi_pred: 96.9, industrial_added_value_pred: 389.7, import_export_total_pred: 24.9, accuracy: 91.84 },
+  { date: '2023-09', gdp_pred: 1296.8, fixed_asset_investment_pred: 289.4, economic_growth_rate_pred: 4.78, economic_added_value_pred: 962.6, ppi_pred: 96.1, cpi_pred: 104.8, industrial_added_value_pred: 339.2, import_export_total_pred: 20.7, accuracy: 93.68 },
+  { date: '2023-10', gdp_pred: 1493.6, fixed_asset_investment_pred: 238.7, economic_growth_rate_pred: 5.41, economic_added_value_pred: 1097.9, ppi_pred: 104.1, cpi_pred: 97.4, industrial_added_value_pred: 403.8, import_export_total_pred: 24, accuracy: 92.21 },
+  { date: '2023-11', gdp_pred: 1334.2, fixed_asset_investment_pred: 273.8, economic_growth_rate_pred: 4.56, economic_added_value_pred: 983.7, ppi_pred: 95.8, cpi_pred: 105.2, industrial_added_value_pred: 351.4, import_export_total_pred: 19.8, accuracy: 94.59 },
+  { date: '2023-12', gdp_pred: 1572.5, fixed_asset_investment_pred: 229.4, economic_growth_rate_pred: 5.47, economic_added_value_pred: 1156.9, ppi_pred: 104.5, cpi_pred: 96.5, industrial_added_value_pred: 420.6, import_export_total_pred: 25, accuracy: 91.31 }
 ];
 
 export const generateFactorData = (dates: string[], factorNames: string[]) => {
@@ -69,7 +85,8 @@ export const generateFactorData = (dates: string[], factorNames: string[]) => {
     return FIRST_SECTOR_ACTUAL_DATA.map(item => {
       const row: any = { date: item.date };
       factorNames.forEach(name => {
-        row[name] = item[name] || 0;
+        // Use type assertion to fix TypeScript index error
+        row[name] = (item as any)[name] || 0;
       });
       return row;
     });
@@ -119,10 +136,10 @@ export const generateCorrelationMatrix = (factorNames: string[], economicVars: s
   indicators.forEach(ind => {
     const row: any = { indicator: ind };
     factorNames.forEach(factor => {
-      if (isFirstSectorData && FIRST_SECTOR_ACTUAL_DATA.every(item => item[ind] !== undefined && item[factor] !== undefined)) {
+      if (isFirstSectorData && FIRST_SECTOR_ACTUAL_DATA.every(item => (item as any)[ind] !== undefined && (item as any)[factor] !== undefined)) {
         // Calculate real Pearson correlation using actual data
-        const x = FIRST_SECTOR_ACTUAL_DATA.map(item => item[factor] as number);
-        const y = FIRST_SECTOR_ACTUAL_DATA.map(item => item[ind] as number);
+        const x = FIRST_SECTOR_ACTUAL_DATA.map(item => (item as any)[factor] as number);
+        const y = FIRST_SECTOR_ACTUAL_DATA.map(item => (item as any)[ind] as number);
         const correlation = calculatePearsonCorrelation(x, y);
         row[factor] = correlation.toFixed(2);
       } else {
@@ -141,27 +158,26 @@ export const generatePredictionData = (dates: string[]) => {
   const isGuiyang2023Data = dates.length === 12 && dates[0] === '2023-01' && dates[11] === '2023-12';
   
   if (isGuiyang2023Data) {
-    // Return prediction data based on actual Guiyang 2023 data
-    return GUIYANG_ECONOMIC_DATA_2023.map(item => {
-      const row: any = { date: item.date };
+    // Return exact prediction data provided by user
+    return GUIYANG_EXACT_PREDICTIONS_2023.map(predItem => {
+      // Find the corresponding actual data item
+      const actualItem = GUIYANG_ECONOMIC_DATA_2023.find(item => item.date === predItem.date);
+      const row: any = { date: predItem.date };
       
-      // For each economic indicator, use the actual data and generate a realistic prediction
-      Object.keys(item).forEach(key => {
-        if (key !== 'date') {
-          const actual = item[key as keyof typeof item] as number;
-          // Generate prediction with small error (2-3% relative error for absolute values, 0.5-1% for percentages)
-          let errorFactor;
-          if (key.includes('_rate') || key === 'ppi' || key === 'cpi') {
-            // Percentage indicators - smaller absolute error
-            errorFactor = (Math.random() - 0.5) * 1.0; // +/- 0.5%
-          } else {
-            // Absolute value indicators - relative error
-            errorFactor = actual * (Math.random() - 0.5) * 0.04; // +/- 2%
+      // Combine actual data and user-provided predictions
+      if (actualItem) {
+        // Add actual values
+        Object.keys(actualItem).forEach(key => {
+          if (key !== 'date') {
+            row[`${key}_actual`] = parseFloat((actualItem[key as keyof typeof actualItem] as number).toFixed(2));
           }
-          const pred = actual + errorFactor;
-          
-          row[`${key}_actual`] = parseFloat(actual.toFixed(2));
-          row[`${key}_pred`] = parseFloat(pred.toFixed(2));
+        });
+      }
+      
+      // Add all user-provided prediction values including accuracy
+      Object.keys(predItem).forEach(key => {
+        if (key !== 'date') {
+          row[key] = predItem[key as keyof typeof predItem] as number;
         }
       });
       
