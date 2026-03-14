@@ -79,7 +79,7 @@ export const REGION_LIST = [
 
 export const REGION_ECONOMIC_INDICATORS = [
   { key: "gdp", label: "生产总值(GDP)", unit: "亿元" },
-  { key: "fixed_asset_investment", label: "固资产投资", unit: "亿元" },
+  { key: "fixed_asset_investment", label: "固定资产投资", unit: "亿元" },
   { key: "economic_growth_rate", label: "经济增速", unit: "%" },
   { key: "economic_added_value", label: "经济增加值", unit: "亿元" },
   { key: "ppi", label: "生产价格指数（PPI）", unit: "%" },
