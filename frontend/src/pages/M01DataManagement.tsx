@@ -540,7 +540,7 @@ const M01DataManagement: React.FC = () => {
   // ============================================================
 
   return (
-    <Layout style={{ padding: 20, background: '#f0f2f5', minHeight: 'calc(100vh - 64px)' }}>
+    <Layout style={{ padding: 16, background: '#F5F7FA', minHeight: 'calc(100vh - 64px)' }}>
       <Content>
         {/* ---- Page Header ---- */}
         <div

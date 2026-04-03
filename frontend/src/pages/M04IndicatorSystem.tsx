@@ -198,19 +198,19 @@ const deepCloneScenes = (scenes: SceneData[]): SceneData[] =>
 
 /** Flow divider arrow between input and output sections */
 const FlowDivider: React.FC = () => (
-  <div style={{ display: 'flex', alignItems: 'center', margin: '14px 0', gap: 8 }}>
-    <div style={{ flex: 1, height: 1, background: 'linear-gradient(to right, #1677ff, #d9d9d9)' }} />
+  <div style={{ display: 'flex', alignItems: 'center', margin: '16px 0', gap: 8 }}>
+    <div style={{ flex: 1, height: 1, background: 'linear-gradient(to right, #0066E9, #E2E5F2)' }} />
     <div
       style={{
         display: 'flex',
         alignItems: 'center',
         gap: 4,
-        padding: '3px 14px',
-        background: '#f6ffed',
-        borderRadius: 12,
-        border: '1px solid #b7eb8f',
-        fontSize: 12,
-        color: '#389e0d',
+        padding: '4px 16px',
+        background: '#E6F4FF',
+        borderRadius: '2px',
+        border: '1px solid #0066E9',
+        fontSize: '13px',
+        color: '#0066E9',
         fontWeight: 500,
         whiteSpace: 'nowrap',
       }}
@@ -218,7 +218,7 @@ const FlowDivider: React.FC = () => (
       <ArrowDownOutlined />
       预测输出
     </div>
-    <div style={{ flex: 1, height: 1, background: 'linear-gradient(to left, #52c41a, #d9d9d9)' }} />
+    <div style={{ flex: 1, height: 1, background: 'linear-gradient(to left, #0066E9, #E2E5F2)' }} />
   </div>
 );
 
@@ -228,15 +228,31 @@ const SectionHeader: React.FC<{
   count: number;
   onAdd: () => void;
 }> = ({ type, count, onAdd }) => (
-  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-    <Space size={6}>
-      <Tag color={type === 'input' ? 'blue' : 'green'} style={{ margin: 0 }}>
+  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+    <Space size={8}>
+      <Tag 
+        style={{ 
+          margin: 0,
+          background: type === 'input' ? '#E6F4FF' : '#F6FFED',
+          color: type === 'input' ? '#0066E9' : '#52C41A',
+          border: `1px solid ${type === 'input' ? '#0066E9' : '#52C41A'}`,
+          borderRadius: '2px',
+          fontSize: '12px',
+          fontWeight: 500,
+        }}
+      >
         {type === 'input' ? '输入指标' : '输出指标'}
       </Tag>
-      <Text type="secondary" style={{ fontSize: 12 }}>({count}项)</Text>
+      <Text style={{ fontSize: '13px', color: '#3B5F8D' }}>({count}项)</Text>
     </Space>
     <Tooltip title={`添加${type === 'input' ? '输入' : '输出'}指标`}>
-      <Button type="text" size="small" icon={<PlusOutlined />} onClick={onAdd} />
+      <Button 
+        type="text" 
+        size="small" 
+        icon={<PlusOutlined />} 
+        onClick={onAdd}
+        style={{ color: '#0066E9' }}
+      />
     </Tooltip>
   </div>
 );
@@ -253,7 +269,7 @@ const IndicatorRow: React.FC<{
   onCancel: () => void;
   onDelete: () => void;
 }> = ({ item, type, isEditing, editValue, onEditValueChange, onStartEdit, onSave, onCancel, onDelete }) => {
-  const borderColor = type === 'input' ? '#1677ff' : '#52c41a';
+  const borderColor = type === 'input' ? '#0066E9' : '#52C41A';
 
   if (isEditing) {
     return (
@@ -261,11 +277,11 @@ const IndicatorRow: React.FC<{
         style={{
           display: 'flex',
           alignItems: 'center',
-          padding: '4px 8px',
-          marginBottom: 2,
+          padding: '6px 12px',
+          marginBottom: 4,
           borderLeft: `3px solid ${borderColor}`,
-          borderRadius: '0 4px 4px 0',
-          background: '#fafafa',
+          borderRadius: '0 2px 2px 0',
+          background: '#F5F7FA',
         }}
       >
         <Input
@@ -274,11 +290,11 @@ const IndicatorRow: React.FC<{
           onChange={(e) => onEditValueChange(e.target.value)}
           onPressEnter={onSave}
           onKeyDown={(e) => e.key === 'Escape' && onCancel()}
-          style={{ flex: 1, marginRight: 4 }}
+          style={{ flex: 1, marginRight: 8, borderRadius: '2px' }}
           autoFocus
         />
-        <Button type="link" size="small" icon={<SaveOutlined />} onClick={onSave} style={{ color: '#52c41a', padding: '0 2px' }} />
-        <Button type="link" size="small" icon={<CloseOutlined />} onClick={onCancel} style={{ color: '#ff4d4f', padding: '0 2px' }} />
+        <Button type="link" size="small" icon={<SaveOutlined />} onClick={onSave} style={{ color: '#52C41A', padding: '0 4px' }} />
+        <Button type="link" size="small" icon={<CloseOutlined />} onClick={onCancel} style={{ color: '#FF4D4F', padding: '0 4px' }} />
       </div>
     );
   }
@@ -289,24 +305,24 @@ const IndicatorRow: React.FC<{
       style={{
         display: 'flex',
         alignItems: 'center',
-        padding: '4px 8px',
-        marginBottom: 2,
+        padding: '6px 12px',
+        marginBottom: 4,
         borderLeft: `3px solid ${borderColor}`,
-        borderRadius: '0 4px 4px 0',
-        background: '#fafafa',
+        borderRadius: '0 2px 2px 0',
+        background: '#F5F7FA',
         transition: 'background 0.2s',
         cursor: 'default',
       }}
     >
-      <Text style={{ flex: 1, fontSize: 13 }} ellipsis={{ tooltip: item.title }}>
+      <Text style={{ flex: 1, fontSize: '14px', color: '#000409' }} ellipsis={{ tooltip: item.title }}>
         {item.title}
       </Text>
       <span className="indicator-actions" style={{ opacity: 0, transition: 'opacity 0.2s', whiteSpace: 'nowrap' }}>
         <Tooltip title="编辑">
-          <Button type="link" size="small" icon={<EditOutlined />} onClick={onStartEdit} style={{ padding: '0 3px' }} />
+          <Button type="link" size="small" icon={<EditOutlined />} onClick={onStartEdit} style={{ padding: '0 4px', color: '#0066E9' }} />
         </Tooltip>
         <Tooltip title="删除">
-          <Button type="link" size="small" danger icon={<DeleteOutlined />} onClick={onDelete} style={{ padding: '0 3px' }} />
+          <Button type="link" size="small" icon={<DeleteOutlined />} onClick={onDelete} style={{ padding: '0 4px', color: '#FF4D4F' }} />
         </Tooltip>
       </span>
     </div>
@@ -424,15 +440,17 @@ const M04IndicatorSystem: React.FC = () => {
     key: scene.key,
     label: (
       <Space>
-        <span style={{ fontWeight: 600, fontSize: 14 }}>{scene.title}</span>
+        <span style={{ fontWeight: 600, fontSize: '14px', color: '#000409' }}>{scene.title}</span>
         <Tag
           style={{
             margin: 0,
-            background: '#e6f4ff',
-            color: '#1677ff',
-            border: '1px solid #91caff',
-            fontSize: 11,
-            lineHeight: '18px',
+            background: '#E6F4FF',
+            color: '#0066E9',
+            border: '1px solid #0066E9',
+            fontSize: '12px',
+            lineHeight: '20px',
+            borderRadius: '2px',
+            fontWeight: 500,
           }}
         >
           输入 {scene.inputs.length} + 输出 {scene.outputs.length}
@@ -550,14 +568,33 @@ const M04IndicatorSystem: React.FC = () => {
   // ---- Render ----
 
   return (
-    <Layout style={{ padding: 16, background: '#f0f2f5', minHeight: 'calc(100vh - 64px)' }}>
+    <Layout style={{ padding: 0, background: '#F5F7FA', minHeight: 'calc(100vh - 64px)' }}>
       <Content>
         <style>{`
           .indicator-row:hover {
-            background: #e6f7ff !important;
+            background: #E6F4FF !important;
           }
           .indicator-row:hover .indicator-actions {
             opacity: 1 !important;
+          }
+          /* 设计规范 - 折叠面板样式 */
+          .ant-collapse {
+            background: transparent;
+            border: none;
+          }
+          .ant-collapse-item {
+            border: 1px solid #E2E5F2;
+            border-radius: 4px;
+            margin-bottom: 8px;
+            background: #fff;
+          }
+          .ant-collapse-header {
+            background: #F5F7FA;
+            border-radius: 4px 4px 0 0 !important;
+            font-weight: 600;
+          }
+          .ant-collapse-content {
+            border-top: 1px solid #E2E5F2;
           }
         `}</style>
         <Row gutter={16} style={{ height: '100%' }}>
@@ -566,11 +603,21 @@ const M04IndicatorSystem: React.FC = () => {
             <Card
               title={
                 <Space>
-                  <span style={{ fontSize: 16, fontWeight: 600 }}>贵州省地市级用电量地图</span>
+                  <span style={{ fontSize: '16px', fontWeight: 'bold', color: '#000409' }}>
+                    贵州省地市级用电量地图
+                  </span>
                 </Space>
               }
-              style={{ height: '100%' }}
-              styles={{ body: { padding: 0, height: 'calc(100% - 57px)' } }}
+              style={{ 
+                height: '100%',
+                borderRadius: '4px',
+                border: '1px solid #E2E5F2',
+              }}
+              headStyle={{
+                borderBottom: '1px solid #E2E5F2',
+                padding: '16px 20px',
+              }}
+              bodyStyle={{ padding: 0, height: 'calc(100% - 57px)' }}
             >
               {mapReady ? (
                 <ReactECharts
@@ -579,7 +626,7 @@ const M04IndicatorSystem: React.FC = () => {
                   opts={{ renderer: 'canvas' }}
                 />
               ) : (
-                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 520, color: '#999' }}>
+                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 520, color: '#3B5F8D' }}>
                   地图加载中...
                 </div>
               )}
@@ -591,20 +638,38 @@ const M04IndicatorSystem: React.FC = () => {
             <Card
               title={
                 <Space>
-                  <ApartmentOutlined />
-                  <span style={{ fontSize: 16, fontWeight: 600 }}>电力看经济指标体系</span>
+                  <ApartmentOutlined style={{ color: '#0066E9' }} />
+                  <span style={{ fontSize: '16px', fontWeight: 'bold', color: '#000409' }}>
+                    电力看经济指标体系
+                  </span>
                 </Space>
               }
               extra={
-                <Button size="small" onClick={handleReset}>
+                <Button 
+                  size="small" 
+                  onClick={handleReset}
+                  style={{
+                    borderRadius: '2px',
+                    borderColor: '#D3D9E8',
+                    color: '#3B5F8D',
+                  }}
+                >
                   恢复默认
                 </Button>
               }
-              style={{ height: '100%' }}
-              styles={{ body: { overflow: 'auto', maxHeight: 'calc(100vh - 170px)', padding: '12px 16px' } }}
+              style={{ 
+                height: '100%',
+                borderRadius: '4px',
+                border: '1px solid #E2E5F2',
+              }}
+              headStyle={{
+                borderBottom: '1px solid #E2E5F2',
+                padding: '16px 20px',
+              }}
+              bodyStyle={{ overflow: 'auto', maxHeight: 'calc(100vh - 170px)', padding: '16px 20px' }}
             >
-              <div style={{ marginBottom: 12 }}>
-                <Text type="secondary" style={{ fontSize: 12 }}>
+              <div style={{ marginBottom: 16 }}>
+                <Text style={{ fontSize: '13px', color: '#3B5F8D' }}>
                   每个场景包含输入指标和输出指标，鼠标悬停指标可编辑或删除
                 </Text>
               </div>
@@ -612,7 +677,6 @@ const M04IndicatorSystem: React.FC = () => {
                 accordion
                 defaultActiveKey={['1-1']}
                 items={collapseItems}
-                style={{ background: 'transparent', border: 'none' }}
               />
             </Card>
           </Col>

@@ -1,11 +1,25 @@
 :root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  /* 设计规范 - 标准色 */
+  --color-primary: #0066E9;
+  --color-primary-hover: #1D69DB;
+  --color-text-primary: #000409;
+  --color-text-secondary: #3B5F8D;
+  --color-border: #D3D9E8;
+  --color-divider: #E2E5F2;
+  --color-bg-page: #F5F7FA;
+  --color-bg-card: #FFFFFF;
+  
+  /* 设计规范 - 字体 */
+  --font-primary: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  --font-number: "DIN", "PingFang SC", sans-serif;
+  
+  font-family: var(--font-primary);
   line-height: 1.5;
   font-weight: 400;
 
   color-scheme: light;
-  color: #213547;
-  background-color: #ffffff;
+  color: var(--color-text-primary);
+  background-color: var(--color-bg-page);
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -20,11 +34,11 @@ html, body, #root {
 
 a {
   font-weight: 500;
-  color: #646cff;
+  color: var(--color-primary);
   text-decoration: inherit;
 }
 a:hover {
-  color: #535bf2;
+  color: var(--color-primary-hover);
 }
 
 body {
@@ -40,33 +54,51 @@ h1 {
 }
 
 button {
-  border-radius: 8px;
+  border-radius: 2px;
   border: 1px solid transparent;
   padding: 0.6em 1.2em;
-  font-size: 1em;
+  font-size: 14px;
   font-weight: 500;
   font-family: inherit;
-  background-color: #1a1a1a;
+  background-color: var(--color-primary);
+  color: #fff;
   cursor: pointer;
-  transition: border-color 0.25s;
+  transition: all 0.25s;
 }
 button:hover {
-  border-color: #646cff;
+  background-color: var(--color-primary-hover);
 }
 button:focus,
 button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
+  outline: 2px auto var(--color-primary);
+}
+
+/* 设计规范 - 文字样式 */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-primary);
+  color: var(--color-text-primary);
+  margin: 0;
+}
+
+h1 { font-size: 22px; font-weight: bold; }
+h2 { font-size: 18px; font-weight: bold; }
+h3 { font-size: 16px; font-weight: bold; }
+h4 { font-size: 14px; font-weight: 600; }
+
+/* 数字/英文使用DIN字体 */
+.number-font {
+  font-family: var(--font-number);
 }
 
 @media (prefers-color-scheme: light) {
   :root {
-    color: #213547;
-    background-color: #ffffff;
+    color: var(--color-text-primary);
+    background-color: var(--color-bg-page);
   }
   a:hover {
-    color: #747bff;
+    color: var(--color-primary-hover);
   }
   button {
-    background-color: #f9f9f9;
+    background-color: var(--color-primary);
   }
 }

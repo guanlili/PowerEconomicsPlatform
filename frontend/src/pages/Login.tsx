@@ -20,11 +20,38 @@ const Login: React.FC = () => {
   };
 
   return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', background: '#f0f2f5' }}>
-      <Card style={{ width: 360 }}>
-        <div style={{ textAlign: 'center', marginBottom: 16 }}>
-          <Title level={4}>电力看经济平台</Title>
-          <div style={{ color: '#999' }}>请登录以继续</div>
+    <div 
+      style={{ 
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'center', 
+        height: '100vh', 
+        background: 'linear-gradient(135deg, #F5F7FA 0%, #E8ECF5 100%)',
+      }}
+    >
+      <Card 
+        style={{ 
+          width: 400,
+          borderRadius: '4px',
+          boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
+          border: '1px solid #E2E5F2',
+        }}
+        bodyStyle={{ padding: '32px' }}
+      >
+        <div style={{ textAlign: 'center', marginBottom: 32 }}>
+          <Title 
+            level={3} 
+            style={{ 
+              color: '#0066E9',
+              margin: 0,
+              fontSize: '22px',
+              fontWeight: 'bold',
+              marginBottom: 8,
+            }}
+          >
+            电力看经济平台
+          </Title>
+          <div style={{ color: '#3B5F8D', fontSize: '14px' }}>请登录以继续</div>
         </div>
         <Form
           form={form}
@@ -32,14 +59,40 @@ const Login: React.FC = () => {
           onFinish={onFinish}
           initialValues={{ username: 'admin', password: '123456' }}
         >
-          <Form.Item name="username" label="用户名" rules={[{ required: true, message: '请输入用户名' }]}>
-            <Input placeholder="admin" autoComplete="username" />
+          <Form.Item 
+            name="username" 
+            label={<span style={{ color: '#000409', fontWeight: 500 }}>用户名</span>} 
+            rules={[{ required: true, message: '请输入用户名' }]}
+          >
+            <Input 
+              placeholder="请输入用户名" 
+              autoComplete="username"
+              style={{ borderRadius: '2px', height: '40px' }}
+            />
           </Form.Item>
-          <Form.Item name="password" label="密码" rules={[{ required: true, message: '请输入密码' }]}>
-            <Input.Password placeholder="123456" autoComplete="current-password" />
+          <Form.Item 
+            name="password" 
+            label={<span style={{ color: '#000409', fontWeight: 500 }}>密码</span>} 
+            rules={[{ required: true, message: '请输入密码' }]}
+          >
+            <Input.Password 
+              placeholder="请输入密码" 
+              autoComplete="current-password"
+              style={{ borderRadius: '2px', height: '40px' }}
+            />
           </Form.Item>
-          <Form.Item>
-            <Button type="primary" htmlType="submit" block>
+          <Form.Item style={{ marginTop: 24, marginBottom: 0 }}>
+            <Button 
+              type="primary" 
+              htmlType="submit" 
+              block
+              style={{ 
+                height: '40px',
+                fontSize: '16px',
+                fontWeight: 500,
+                borderRadius: '2px',
+              }}
+            >
               登录
             </Button>
           </Form.Item>

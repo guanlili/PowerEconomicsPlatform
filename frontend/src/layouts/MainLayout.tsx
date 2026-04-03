@@ -45,25 +45,64 @@ const MainLayout: React.FC = () => {
   };
 
   return (
-    <Layout style={{ minHeight: '100vh' }}>
-      <Header style={{ display: 'flex', alignItems: 'center', background: '#001529', padding: '0 24px' }}>
+    <Layout style={{ minHeight: '100vh', background: '#F5F7FA' }}>
+      <Header 
+        style={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          background: '#fff', 
+          padding: '0 24px',
+          borderBottom: '1px solid #E2E5F2',
+          boxShadow: '0 1px 4px rgba(0,0,0,0.05)',
+          zIndex: 100,
+        }}
+      >
         <div className="logo" style={{ marginRight: '48px', display: 'flex', alignItems: 'center' }}>
-          <Title level={4} style={{ color: '#fff', margin: 0 }}>电力看经济平台</Title>
+          <Title 
+            level={4} 
+            style={{ 
+              color: '#0066E9', 
+              margin: 0,
+              fontSize: '18px',
+              fontWeight: 'bold',
+            }}
+          >
+            电力看经济平台
+          </Title>
         </div>
         <Menu
-          theme="dark"
+          theme="light"
           mode="horizontal"
           selectedKeys={[location.pathname]}
           items={menuItems}
           onClick={handleMenuClick}
-          style={{ flex: 1, minWidth: 0 }}
+          style={{ 
+            flex: 1, 
+            minWidth: 0,
+            background: 'transparent',
+            borderBottom: 'none',
+          }}
         />
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          {user ? <span style={{ color: '#fff' }}>{user}</span> : null}
-          <Button size="small" onClick={handleLogout}>退出登录</Button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+          {user ? (
+            <span style={{ color: '#3B5F8D', fontSize: '14px' }}>
+              {user}
+            </span>
+          ) : null}
+          <Button 
+            size="small" 
+            onClick={handleLogout}
+            style={{
+              borderRadius: '2px',
+              borderColor: '#D3D9E8',
+              color: '#3B5F8D',
+            }}
+          >
+            退出登录
+          </Button>
         </div>
       </Header>
-      <Content style={{ padding: '0 0px', background: '#f0f2f5' }}>
+      <Content style={{ padding: '16px', background: '#F5F7FA' }}>
         <Outlet />
       </Content>
     </Layout>

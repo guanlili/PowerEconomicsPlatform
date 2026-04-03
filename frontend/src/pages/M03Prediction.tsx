@@ -292,16 +292,16 @@ const M03Prediction: React.FC = () => {
   };
 
   return (
-    <Layout style={{ height: 'calc(100vh - 64px)' }}>
+    <Layout style={{ height: 'calc(100vh - 64px)', background: '#F5F7FA' }}>
       <Sider
         width={340}
         theme="light"
-        style={{ padding: '0', borderRight: '1px solid #f0f0f0', overflowY: 'auto' }}
+        style={{ padding: '0', borderRight: '1px solid #E2E5F2', overflowY: 'auto', background: '#fff' }}
         breakpoint="lg"
         collapsedWidth="0"
       >
         <div style={{ padding: '24px 24px 0 24px' }}>
-          <Title level={4}>预测配置</Title>
+          <Title level={4} style={{ color: '#000409', fontWeight: 'bold' }}>预测配置</Title>
           <Tabs
             activeKey={activeTab}
             onChange={handleTabChange}
