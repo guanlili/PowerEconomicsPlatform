@@ -106,7 +106,7 @@ const ProtectedRoute: React.FC<{ element: React.ReactElement }> = ({ element }) 
 const App: React.FC = () => {
   return (
     <ConfigProvider locale={customZhCN} theme={themeConfig}>
-      <Router>
+      <Router basename="/keti1">
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/" element={<MainLayout />}>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Layout, Card, Collapse, Tag, Input, Button, Space, Typography, Tooltip, Modal, message, Row, Col } from 'antd';
+import { Layout, Card, Collapse, Tag, Input, Button, Space, Typography, Tooltip, Modal, App, Row, Col } from 'antd';
 import {
   EditOutlined,
   DeleteOutlined,
@@ -336,10 +336,11 @@ const M04IndicatorSystem: React.FC = () => {
   const [editingKey, setEditingKey] = useState<string | null>(null);
   const [editValue, setEditValue] = useState('');
   const [mapReady, setMapReady] = useState(false);
+  const { message } = App.useApp();
 
   // Load GeoJSON and register map
   useEffect(() => {
-    fetch('/guizhou.json')
+    fetch(`${import.meta.env.BASE_URL}guizhou.json`)
       .then((res) => res.json())
       .then((geoJson) => {
         echarts.registerMap('guizhou', geoJson);
@@ -613,11 +614,13 @@ const M04IndicatorSystem: React.FC = () => {
                 borderRadius: '4px',
                 border: '1px solid #E2E5F2',
               }}
-              headStyle={{
-                borderBottom: '1px solid #E2E5F2',
-                padding: '16px 20px',
+              styles={{
+                header: {
+                  borderBottom: '1px solid #E2E5F2',
+                  padding: '16px 20px',
+                },
+                body: { padding: 0, height: 'calc(100% - 57px)' },
               }}
-              bodyStyle={{ padding: 0, height: 'calc(100% - 57px)' }}
             >
               {mapReady ? (
                 <ReactECharts
@@ -662,11 +665,13 @@ const M04IndicatorSystem: React.FC = () => {
                 borderRadius: '4px',
                 border: '1px solid #E2E5F2',
               }}
-              headStyle={{
-                borderBottom: '1px solid #E2E5F2',
-                padding: '16px 20px',
+              styles={{
+                header: {
+                  borderBottom: '1px solid #E2E5F2',
+                  padding: '16px 20px',
+                },
+                body: { overflow: 'auto', maxHeight: 'calc(100vh - 170px)', padding: '16px 20px' },
               }}
-              bodyStyle={{ overflow: 'auto', maxHeight: 'calc(100vh - 170px)', padding: '16px 20px' }}
             >
               <div style={{ marginBottom: 16 }}>
                 <Text style={{ fontSize: '13px', color: '#3B5F8D' }}>

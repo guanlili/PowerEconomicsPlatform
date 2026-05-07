@@ -17,6 +17,10 @@ build
 # Algorithm packages
 backend/算法包
 
+# Python
+__pycache__/
+*.pyc
+
 # Environment
 .env
 .env.local

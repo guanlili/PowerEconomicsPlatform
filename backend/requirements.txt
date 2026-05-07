@@ -3,3 +3,7 @@ uvicorn
 pandas
 numpy
 scikit-learn
+scipy
+statsmodels
+openpyxl
+python-multipart
