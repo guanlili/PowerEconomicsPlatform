@@ -26,7 +26,7 @@ const Login: React.FC = () => {
         alignItems: 'center', 
         justifyContent: 'center', 
         height: '100vh', 
-        background: 'linear-gradient(135deg, #F5F7FA 0%, #E8ECF5 100%)',
+        background: 'transparent',
       }}
     >
       <Card 

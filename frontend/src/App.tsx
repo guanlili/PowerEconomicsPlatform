@@ -8,7 +8,6 @@ import M01DataManagement from './pages/M01DataManagement';
 import M02Analysis from './pages/M02Analysis';
 import M03Prediction from './pages/M03Prediction';
 import M04IndicatorSystem from './pages/M04IndicatorSystem';
-import Login from './pages/Login';
 
 // 设计规范主题配置
 const themeConfig: ThemeConfig = {
@@ -90,31 +89,17 @@ const customZhCN = {
   }
 } as typeof zhCN;
 
-const isAuthed = () => {
-  try {
-    const raw = localStorage.getItem('auth_user');
-    return !!raw;
-  } catch {
-    return false;
-  }
-};
-
-const ProtectedRoute: React.FC<{ element: React.ReactElement }> = ({ element }) => {
-  return isAuthed() ? element : <Navigate to="/login" replace />;
-};
-
 const App: React.FC = () => {
   return (
     <ConfigProvider locale={customZhCN} theme={themeConfig}>
       <Router basename="/keti1">
         <Routes>
-          <Route path="/login" element={<Login />} />
           <Route path="/" element={<MainLayout />}>
             <Route index element={<Navigate to="/m04" replace />} />
-            <Route path="m04" element={<ProtectedRoute element={<M04IndicatorSystem />} />} />
-            <Route path="m02" element={<ProtectedRoute element={<M02Analysis />} />} />
-            <Route path="m03" element={<ProtectedRoute element={<M03Prediction />} />} />
-            <Route path="m01" element={<ProtectedRoute element={<M01DataManagement />} />} />
+            <Route path="m04" element={<M04IndicatorSystem />} />
+            <Route path="m02" element={<M02Analysis />} />
+            <Route path="m03" element={<M03Prediction />} />
+            <Route path="m01" element={<M01DataManagement />} />
           </Route>
         </Routes>
       </Router>

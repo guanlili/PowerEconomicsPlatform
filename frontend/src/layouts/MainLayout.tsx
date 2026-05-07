@@ -1,5 +1,5 @@
 import React from 'react';
-import { Layout, Menu, Typography, Button } from 'antd';
+import { Layout, Menu, Typography } from 'antd';
 import { useNavigate, useLocation, Outlet } from 'react-router-dom';
 import { LineChartOutlined, BarChartOutlined, DatabaseOutlined, ApartmentOutlined } from '@ant-design/icons';
 
@@ -37,20 +37,13 @@ const MainLayout: React.FC = () => {
     navigate(e.key);
   };
 
-  const user = localStorage.getItem('auth_user') || '';
-
-  const handleLogout = () => {
-    localStorage.removeItem('auth_user');
-    navigate('/login', { replace: true });
-  };
-
   return (
-    <Layout style={{ minHeight: '100vh', background: '#F5F7FA' }}>
+    <Layout style={{ minHeight: '100vh', background: 'transparent' }}>
       <Header 
         style={{ 
           display: 'flex', 
           alignItems: 'center', 
-          background: '#fff', 
+          background: 'transparent', 
           padding: '0 24px',
           borderBottom: '1px solid #E2E5F2',
           boxShadow: '0 1px 4px rgba(0,0,0,0.05)',
@@ -83,26 +76,8 @@ const MainLayout: React.FC = () => {
             borderBottom: 'none',
           }}
         />
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-          {user ? (
-            <span style={{ color: '#3B5F8D', fontSize: '14px' }}>
-              {user}
-            </span>
-          ) : null}
-          <Button 
-            size="small" 
-            onClick={handleLogout}
-            style={{
-              borderRadius: '2px',
-              borderColor: '#D3D9E8',
-              color: '#3B5F8D',
-            }}
-          >
-            退出登录
-          </Button>
-        </div>
       </Header>
-      <Content style={{ padding: '16px', background: '#F5F7FA' }}>
+      <Content style={{ padding: '16px', background: 'transparent' }}>
         <Outlet />
       </Content>
     </Layout>
