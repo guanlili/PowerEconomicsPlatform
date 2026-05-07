@@ -281,7 +281,7 @@ const IndicatorRow: React.FC<{
           marginBottom: 4,
           borderLeft: `3px solid ${borderColor}`,
           borderRadius: '0 2px 2px 0',
-          background: '#F5F7FA',
+          background: 'rgba(245, 247, 250, 0.55)',
         }}
       >
         <Input
@@ -309,7 +309,7 @@ const IndicatorRow: React.FC<{
         marginBottom: 4,
         borderLeft: `3px solid ${borderColor}`,
         borderRadius: '0 2px 2px 0',
-        background: '#F5F7FA',
+        background: 'rgba(245, 247, 250, 0.55)',
         transition: 'background 0.2s',
         cursor: 'default',
       }}
@@ -569,11 +569,11 @@ const M04IndicatorSystem: React.FC = () => {
   // ---- Render ----
 
   return (
-    <Layout style={{ padding: 0, background: '#F5F7FA', minHeight: 'calc(100vh - 64px)' }}>
+    <Layout style={{ padding: 0, background: 'transparent', minHeight: 'calc(100vh - 64px)' }}>
       <Content>
         <style>{`
           .indicator-row:hover {
-            background: #E6F4FF !important;
+            background: rgba(230, 244, 255, 0.7) !important;
           }
           .indicator-row:hover .indicator-actions {
             opacity: 1 !important;
@@ -587,10 +587,8 @@ const M04IndicatorSystem: React.FC = () => {
             border: 1px solid #E2E5F2;
             border-radius: 4px;
             margin-bottom: 8px;
-            background: #fff;
           }
           .ant-collapse-header {
-            background: #F5F7FA;
             border-radius: 4px 4px 0 0 !important;
             font-weight: 600;
           }

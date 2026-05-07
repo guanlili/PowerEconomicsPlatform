@@ -509,11 +509,11 @@ const M03Prediction: React.FC = () => {
   };
 
   return (
-    <Layout style={{ height: 'calc(100vh - 64px)', background: '#F5F7FA' }}>
+    <Layout style={{ height: 'calc(100vh - 64px)', background: 'transparent' }}>
       <Sider
         width={340}
         theme="light"
-        style={{ padding: '0', borderRight: '1px solid #E2E5F2', overflowY: 'auto', background: '#fff' }}
+        style={{ padding: '0', borderRight: '1px solid #E2E5F2', overflowY: 'auto' }}
         breakpoint="lg"
         collapsedWidth="0"
       >

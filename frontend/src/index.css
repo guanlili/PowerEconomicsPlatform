@@ -95,6 +95,99 @@ h4 { font-size: 14px; font-weight: 600; }
   font-family: var(--font-number);
 }
 
+/* 全局半透明样式 —— 露出背景图 */
+/* 卡片 */
+.ant-card {
+  background: rgba(255, 255, 255, 0.82) !important;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+/* 侧边栏 */
+.ant-layout-sider {
+  background: rgba(255, 255, 255, 0.7) !important;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+/* Tabs 标签页 */
+.ant-tabs,
+.ant-tabs-nav {
+  background: transparent !important;
+}
+
+.ant-tabs-tab {
+  background: transparent !important;
+}
+
+.ant-tabs-content-holder {
+  background: transparent !important;
+}
+
+/* 复选框/单选框 */
+.ant-checkbox-wrapper,
+.ant-radio-wrapper {
+  background: transparent !important;
+}
+
+/* 表单 */
+.ant-form {
+  background: transparent !important;
+}
+
+/* 表格表头 */
+.ant-table-thead > tr > th {
+  background: rgba(245, 247, 250, 0.75) !important;
+}
+
+/* 表格主体 */
+.ant-table {
+  background: transparent !important;
+}
+
+.ant-table-tbody > tr > td {
+  background: transparent !important;
+}
+
+.ant-table-tbody > tr:hover > td {
+  background: rgba(230, 244, 255, 0.6) !important;
+}
+
+/* 折叠面板 */
+.ant-collapse-item {
+  background: rgba(255, 255, 255, 0.82) !important;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.ant-collapse-header {
+  background: rgba(245, 247, 250, 0.6) !important;
+}
+
+/* 输入框、选择器 */
+.ant-input,
+.ant-select-selector,
+.ant-picker,
+.ant-input-number,
+.ant-input-affix-wrapper {
+  background: rgba(255, 255, 255, 0.7) !important;
+}
+
+/* 模态框 */
+.ant-modal-content {
+  background: rgba(255, 255, 255, 0.92) !important;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+/* 弹出层/下拉菜单 */
+.ant-popover-inner,
+.ant-dropdown-menu {
+  background: rgba(255, 255, 255, 0.9) !important;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
 @media (prefers-color-scheme: light) {
   :root {
     color: var(--color-text-primary);
