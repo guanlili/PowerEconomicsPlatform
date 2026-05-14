@@ -110,6 +110,16 @@ const M01DataManagement: React.FC = () => {
   const [pageSize, setPageSize] = useState(50);
   const [dataLoading, setDataLoading] = useState(false);
 
+  // Virtual scroll 需要 scroll.y 为具体数值，跟随窗口尺寸变化
+  const [tableScrollY, setTableScrollY] = useState<number>(() =>
+    typeof window !== 'undefined' ? Math.max(window.innerHeight - 520, 300) : 480
+  );
+  useEffect(() => {
+    const onResize = () => setTableScrollY(Math.max(window.innerHeight - 520, 300));
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
+
   // ---- Fetch schema on mount ----
   useEffect(() => {
     setSchemaLoading(true);
@@ -498,11 +508,12 @@ const M01DataManagement: React.FC = () => {
         >
           <Spin spinning={dataLoading}>
             <Table
-              rowKey={(_, index) => `row-${index}`}
+              virtual
+              rowKey={(_, index) => `row-${page}-${pageSize}-${index}`}
               columns={antColumns}
               dataSource={tableData}
               size="small"
-              scroll={{ x: 'max-content', y: 'calc(100vh - 520px)' }}
+              scroll={{ x: 'max-content', y: tableScrollY }}
               pagination={{
                 current: page,
                 pageSize: pageSize,

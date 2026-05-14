@@ -6,7 +6,7 @@ from typing import List, Optional
 import pandas as pd
 from fastapi import FastAPI, Form, Query, HTTPException, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
-from sqlalchemy import text
+from sqlalchemy import text, inspect
 
 from database import get_engine, init_db, get_table_name, TABLE_MAPPING
 from services.factor_analysis import analyze_factors
@@ -103,6 +103,23 @@ def _read_from_db_paged(table_name: str, page: int, page_size: int):
         result = conn.execute(text(f"SELECT COUNT(*) FROM `{table_name}`"))
         total = result.scalar()
     return df, total
+
+
+def _get_table_meta(table_name: str):
+    """轻量获取表的列名和行数，不读取数据
+
+    用 SQLAlchemy inspector 拿列名（走 information_schema），
+    用 SELECT COUNT(*) 拿行数，避免 pd.read_sql_table 把整表读进内存。
+    """
+    engine = get_engine()
+    inspector = inspect(engine)
+    if not inspector.has_table(table_name):
+        raise ValueError(f"表不存在: {table_name}")
+    columns = [col["name"] for col in inspector.get_columns(table_name)]
+    with engine.connect() as conn:
+        result = conn.execute(text(f"SELECT COUNT(*) FROM `{table_name}`"))
+        row_count = result.scalar() or 0
+    return columns, row_count
 
 
 def _df_to_records(df: pd.DataFrame) -> list:
@@ -295,14 +312,14 @@ async def api_data_sheets():
         for data_type in VALID_DATA_TYPES:
             try:
                 table_name = get_table_name(data_type, sheet_name)
-                df = _read_from_db(table_name)
+                columns, row_count = _get_table_meta(table_name)
                 data_types.append({
                     "name": data_type,
-                    "columns": df.columns.tolist(),
-                    "row_count": len(df),
+                    "columns": columns,
+                    "row_count": row_count,
                 })
             except Exception as e:
-                logger.warning(f"读取 {data_type}/{sheet_name} 失败: {e}")
+                logger.warning(f"读取 {data_type}/{sheet_name} 元信息失败: {e}")
                 continue
         sheets.append({"name": sheet_name, "data_types": data_types})
     return {"sheets": sheets}
@@ -388,25 +405,26 @@ async def api_data_import(
         # 影响因素和目标经济变量表的第一列是时间
         key_cols = [new_df.columns[0]]
 
-    # 读取已有数据
+    # 只读取已有数据的键列用于去重（避免整表读入内存）
+    key_cols_sql = ", ".join(f"`{c}`" for c in key_cols)
     try:
-        existing_df = _read_from_db(table_name)
+        existing_keys = pd.read_sql(f"SELECT {key_cols_sql} FROM `{table_name}`", engine)
     except Exception:
-        existing_df = pd.DataFrame()
+        existing_keys = pd.DataFrame(columns=key_cols)
 
-    if existing_df.empty:
+    if existing_keys.empty:
         # 表为空，全部导入
         rows_to_import = new_df
         skipped_rows = 0
     else:
         # 统一键列数据类型为字符串进行比较，避免日期格式不一致问题
         new_df_keys = new_df[key_cols].copy()
-        existing_df_keys = existing_df[key_cols].copy()
+        existing_df_keys = existing_keys[key_cols].copy()
         for col in key_cols:
             new_df_keys[col] = new_df_keys[col].astype(str).str.strip()
             existing_df_keys[col] = existing_df_keys[col].astype(str).str.strip()
 
-        # 用 merge 找出新数据（在 new_df 中但不在 existing_df 中的行）
+        # 用 merge 找出新数据（在 new_df 中但不在 existing 中的行）
         merged = new_df_keys.merge(existing_df_keys, on=key_cols, how="left", indicator=True)
         mask = merged["_merge"] == "left_only"
         rows_to_import = new_df[mask.values].reset_index(drop=True)
@@ -468,10 +486,11 @@ async def api_data_list(
     table_name = get_table_name(data_type, sheet)
     page_df, total = _read_from_db_paged(table_name, page, page_size)
 
-    # 获取全部列名（从第一页数据或单独查询）
-    engine = get_engine()
-    columns_df = pd.read_sql(f"SELECT * FROM `{table_name}` LIMIT 1", engine)
-    columns = columns_df.columns.tolist()
+    # 列名优先从 page_df 拿，为空时走元数据查询，避免多余的 SELECT * LIMIT 1
+    if not page_df.columns.empty:
+        columns = page_df.columns.tolist()
+    else:
+        columns, _ = _get_table_meta(table_name)
 
     return {
         "total": total,
