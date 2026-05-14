@@ -17,6 +17,8 @@ import pandas as pd
 from pmdarima import auto_arima
 from statsmodels.tsa.arima.model import ARIMA
 
+from utils.time_utils import normalize_time_column, detect_time_column, parse_api_date_range
+
 logger = logging.getLogger(__name__)
 
 DEFAULT_FORECAST_PERIODS = 12
@@ -232,7 +234,7 @@ def predict_economics(
     try:
         # --- 1. Detect date column and preprocess history ---
         if date_col is None:
-            date_col = _detect_date_column(history_df)
+            date_col = detect_time_column(history_df)
 
         if date_col is None:
             return {
@@ -240,7 +242,12 @@ def predict_economics(
             }
 
         history_df = history_df.copy()
-        history_df["_datetime"] = history_df[date_col].apply(_convert_time_format)
+        # 使用统一时间工具标准化时间列
+        try:
+            history_df["_datetime"] = normalize_time_column(history_df[date_col], granularity="month")
+        except ValueError:
+            # 回退到原始解析方式
+            history_df["_datetime"] = history_df[date_col].apply(_convert_time_format)
         history_df = history_df.dropna(subset=["_datetime"])
         history_df.set_index("_datetime", inplace=True)
 
@@ -251,11 +258,15 @@ def predict_economics(
         if date_start or date_end:
             try:
                 if date_start:
-                    start_dt = pd.to_datetime(date_start)
-                    history_df = history_df[history_df.index >= start_dt]
+                    start_dt = parse_api_date_range(date_start)
+                    if start_dt:
+                        history_df = history_df[history_df.index >= start_dt]
                 if date_end:
-                    end_dt = pd.to_datetime(date_end)
-                    history_df = history_df[history_df.index <= end_dt]
+                    end_dt = parse_api_date_range(date_end)
+                    if end_dt:
+                        # 月末匃容：包含结束月份整月
+                        end_dt = end_dt + pd.offsets.MonthEnd(0)
+                        history_df = history_df[history_df.index <= end_dt]
                 if len(history_df) == 0:
                     return {"error": f"日期范围 [{date_start}, {date_end}] 内无数据"}
                 logger.info(f"历史数据日期过滤: 起止={history_df.index[0].strftime('%Y-%m')} ~ {history_df.index[-1].strftime('%Y-%m')} ({len(history_df)} 行)")
@@ -328,12 +339,13 @@ def predict_economics(
         # --- 7. Process actual data for comparison if provided ---
         if actual_df is not None:
             actual_df = actual_df.copy()
-            actual_date_col = _detect_date_column(actual_df) or date_col
+            actual_date_col = detect_time_column(actual_df) or date_col
 
             if actual_date_col and actual_date_col in actual_df.columns:
-                actual_df["_datetime"] = actual_df[actual_date_col].apply(
-                    _convert_time_format
-                )
+                try:
+                    actual_df["_datetime"] = normalize_time_column(actual_df[actual_date_col], granularity="month")
+                except ValueError:
+                    actual_df["_datetime"] = actual_df[actual_date_col].apply(_convert_time_format)
                 actual_df = actual_df.dropna(subset=["_datetime"])
                 actual_df.set_index("_datetime", inplace=True)
 

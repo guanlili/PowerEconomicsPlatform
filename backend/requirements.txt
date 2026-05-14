@@ -8,3 +8,6 @@ statsmodels
 pmdarima
 openpyxl
 python-multipart
+sqlalchemy
+pymysql
+cryptography

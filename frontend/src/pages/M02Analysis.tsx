@@ -1,24 +1,14 @@
-import React, { useState, useRef } from 'react';
-import { Layout, Card, Form, Select, DatePicker, Button, Checkbox, Row, Col, Table, Typography, message, Tabs, Input, Upload, Collapse } from 'antd';
-import { UploadOutlined } from '@ant-design/icons';
-import type { UploadFile } from 'antd/es/upload';
+import React, { useState, useEffect } from 'react';
+import { Layout, Card, Form, Select, DatePicker, Button, Row, Col, Table, Typography, message, Tabs, Input } from 'antd';
 import ReactECharts from 'echarts-for-react';
 import axios from 'axios';
 import dayjs from 'dayjs';
 import 'dayjs/locale/zh-cn';
 import {
   INDUSTRY_LIST,
-  REGION_FACTORS,
-  SECTOR_FACTORS_MAP,
-  INDUSTRY_FACTORS_MAP,
   SECTOR_LIST,
   REGION_LIST,
-  REGION_ECONOMIC_INDICATORS,
-  INDUSTRY_ECONOMIC_INDICATORS,
-  SECTOR_ECONOMIC_INDICATORS
 } from '../types';
-import type { FactorConfig } from '../types';
-import { generateDates, generateFactorData, generateCorrelationMatrix } from '../utils/mockData';
 
 const { Sider, Content } = Layout;
 const { Title } = Typography;
@@ -37,97 +27,67 @@ const monthCellRender = (date: any) => {
 const M02Analysis: React.FC = () => {
   const [form] = Form.useForm();
   const [activeTab, setActiveTab] = useState('sector');
-  const [currentObject, setCurrentObject] = useState<string>('第一产业'); // Default for sector
   const [loading, setLoading] = useState(false);
   const [chartData, setChartData] = useState<any[]>([]);
   const [correlationData, setCorrelationData] = useState<any[]>([]);
   const [selectedFactors, setSelectedFactors] = useState<string[]>([]);
   const [selectedEconomicVars, setSelectedEconomicVars] = useState<string[]>([]);
 
-  // --- 文件上传模式相关状态 ---
-  const [uploadFileList, setUploadFileList] = useState<UploadFile[]>([]);
-  const [uploadColumns, setUploadColumns] = useState<string[]>([]);
-  const [uploadMode, setUploadMode] = useState(false);
-  const uploadedFileRef = useRef<File | null>(null); // 用 ref 可靠存储原始 File 对象
+  // --- 数据选择模式相关状态 ---
+  const [dataType, setDataType] = useState<string>('产业');
+  const [availableColumns, setAvailableColumns] = useState<{target_columns: string[], factor_columns: string[], date_range: string[]}>({target_columns: [], factor_columns: [], date_range: []});
 
-  // 文件上传后获取列名
-  const handleFileUpload = async (info: any) => {
-    const { fileList: newFileList } = info;
-
-    // 文件被移除
-    if (newFileList.length === 0) {
-      setUploadFileList([]);
-      setUploadColumns([]);
-      setUploadMode(false);
-      uploadedFileRef.current = null;
-      return;
-    }
-
-    setUploadFileList(newFileList.slice(-1));
-
-    // 从 antd 的 file 对象中提取原始 File（兼容多种情况）
-    const latestFile = newFileList[newFileList.length - 1];
-    const rawFile: File | undefined = latestFile?.originFileObj ?? latestFile;
-    if (rawFile && rawFile instanceof File && rawFile.size > 0) {
-      uploadedFileRef.current = rawFile;
-      const formData = new FormData();
-      formData.append('file', rawFile);
-      try {
-        const res = await axios.post('/api/columns', formData);
-        setUploadColumns(res.data.columns || []);
-        setUploadMode(false);
-
-        // 自动设置日期范围（根据 Excel 中的实际数据）
-        if (res.data.date_range && res.data.date_range.length === 2) {
-          form.setFieldValue('dateRange', [
-            dayjs(res.data.date_range[0], 'YYYY-MM'),
-            dayjs(res.data.date_range[1], 'YYYY-MM'),
-          ]);
-        }
-
-        message.success('文件上传成功，请在下方勾选目标经济变量与影响因素后点击"计算相关性"');
-      } catch (err: any) {
-        message.error(err?.response?.data?.detail || '获取列名失败');
-        setUploadColumns([]);
-      }
+  // 获取列名和日期范围
+  const fetchColumns = async (type: string) => {
+    try {
+      const res = await axios.get('/api/data/columns', { params: { data_type: type } });
+      const data = res.data;
+      setAvailableColumns({
+        target_columns: data.target_columns || [],
+        factor_columns: data.factor_columns || [],
+        date_range: data.date_range || [],
+      });
+      // 默认日期范围：2023年全年
+      form.setFieldValue('dateRange', [
+        dayjs('2023-01', 'YYYY-MM'),
+        dayjs('2023-12', 'YYYY-MM'),
+      ]);
+    } catch (err: any) {
+      message.error(err?.response?.data?.detail || '获取列信息失败');
     }
   };
 
-  // Get current indicators based on active tab
-  const getCurrentIndicators = () => {
-    switch (activeTab) {
-      case 'region': return REGION_ECONOMIC_INDICATORS;
-      case 'industry': return INDUSTRY_ECONOMIC_INDICATORS;
-      case 'sector': return SECTOR_ECONOMIC_INDICATORS;
-      default: return REGION_ECONOMIC_INDICATORS;
-    }
+  // 数据类型切换处理
+  const handleDataTypeChange = (value: string) => {
+    setDataType(value);
+    // 清空旧的选择（不同数据类型的列名不同）
+    form.setFieldValue('factors', []);
+    setSelectedEconomicTargets([]);
+    setChartData([]);
+    setCorrelationData([]);
+    fetchColumns(value);
   };
 
-  // Get current factors config based on active tab and selected object
-  const getCurrentFactors = (): FactorConfig[] => {
-    switch (activeTab) {
-      case 'region': return REGION_FACTORS;
-      case 'industry': return (currentObject && INDUSTRY_FACTORS_MAP[currentObject]) ? INDUSTRY_FACTORS_MAP[currentObject] : [];
-      case 'sector': return (currentObject && SECTOR_FACTORS_MAP[currentObject]) ? SECTOR_FACTORS_MAP[currentObject] : [];
-      default: return REGION_FACTORS;
-    }
-  };
+  // 初始加载
+  useEffect(() => {
+    fetchColumns(dataType);
+  }, []);
+
+  // 选中的目标经济变量（直接使用完整列名）
+  const [selectedEconomicTargets, setSelectedEconomicTargets] = useState<string[]>([]);
 
   // Handle form value changes to update current object state
-  const handleValuesChange = (changedValues: any) => {
-    if (changedValues.object) {
-      setCurrentObject(changedValues.object);
-      // Reset selected factors when object changes because factor list changes
-      form.setFieldValue('factors', []);
-    }
+  const handleValuesChange = (_changedValues: any) => {
+    // No-op: factors are now selected from API columns directly
   };
 
   // Reset form fields when tab changes
   const handleTabChange = (key: string) => {
     setActiveTab(key);
-    form.resetFields(['object', 'factors', 'economicVars']);
+    form.resetFields(['object', 'factors']);
     setChartData([]);
     setCorrelationData([]);
+    setSelectedEconomicTargets([]);
 
     // Set default object for the new tab to improve UX
     let defaultObject = '';
@@ -137,16 +97,21 @@ const M02Analysis: React.FC = () => {
 
     if (defaultObject) {
       form.setFieldValue('object', defaultObject);
-      setCurrentObject(defaultObject);
     }
+
+    // 联动数据类型
+    const typeMap: Record<string, string> = { sector: '产业', region: '区域', industry: '行业' };
+    const newType = typeMap[key] || '产业';
+    setDataType(newType);
+    fetchColumns(newType);
   };
 
   const onFinish = async (values: any) => {
     setLoading(true);
-    const { dateRange, factors, economicVars } = values;
+    const { dateRange, factors } = values;
 
-    // 基础验证
-    if (!economicVars || economicVars.length === 0) {
+    // 基础验证：使用完整列名
+    if (!selectedEconomicTargets || selectedEconomicTargets.length === 0) {
       message.error('请选择至少一个目标经济变量');
       setLoading(false);
       return;
@@ -157,205 +122,92 @@ const M02Analysis: React.FC = () => {
       return;
     }
 
-    // --- 上传模式：调用真实API ---
-    if (uploadedFileRef.current) {
-      const indicators = getCurrentIndicators();
-      const currentFactorsCfg = getCurrentFactors();
+    // 直接使用完整列名（包含单位），精确匹配
+    const targetCol = selectedEconomicTargets[0];
+    // factors 已经是完整列名
+    const factorLabels = factors as string[];
 
-      // 将勾选的 key 映射为标签名（即 Excel 列名）
-      const targetLabels = economicVars
-        .map((key: string) => indicators.find(ind => ind.key === key)?.label)
-        .filter(Boolean) as string[];
-      const factorLabels = factors
-        .map((key: string) => currentFactorsCfg.find(f => f.name === key)?.label)
-        .filter(Boolean) as string[];
+    const formData = new FormData();
+    formData.append('data_type', dataType);
+    formData.append('target_col', targetCol);
+    formData.append('factor_cols', JSON.stringify(factorLabels));
+    formData.append('top_n', '20');
 
-      const targetCol = targetLabels[0];
-      if (!targetCol) {
-        message.error('无法匹配目标经济变量到 Excel 列名，请检查勾选项');
+    // 传递前端选择的时间范围
+    if (dateRange && dateRange.length === 2) {
+      formData.append('date_start', dateRange[0].format('YYYY-MM'));
+      formData.append('date_end', dateRange[1].format('YYYY-MM'));
+    }
+
+    try {
+      const res = await axios.post('/api/analysis', formData);
+      const data = res.data;
+      const scores: any[] = data.scores || [];
+
+      if (scores.length === 0) {
+        message.warning('未计算出相关性得分，请检查选择的列是否有效');
         setLoading(false);
         return;
       }
 
-      const formData = new FormData();
-      formData.append('file', uploadedFileRef.current);
-      formData.append('target_col', targetCol);
-      formData.append('factor_cols', JSON.stringify(factorLabels));
-      formData.append('top_n', '20');
+      // table_data 作为折线图+原始数据表格的数据源
+      const tableRows: any[] = data.table_data || [];
+      setChartData(tableRows);
 
-      // 传递前端选择的时间范围
-      if (dateRange && dateRange.length === 2) {
-        formData.append('date_start', dateRange[0].format('YYYY-MM'));
-        formData.append('date_end', dateRange[1].format('YYYY-MM'));
-      }
+      // 相关性矩阵（平均得分）
+      const corrRows = [
+        {
+          indicator: targetCol,
+          ...Object.fromEntries(scores.map((s: any) => [s.variable, s.avg_score?.toFixed(4) || 'N/A'])),
+        },
+      ];
+      setCorrelationData(corrRows);
+      setSelectedFactors(scores.slice(0, 8).map((s: any) => s.variable));
+      setSelectedEconomicVars([targetCol]);
 
-      try {
-        const res = await axios.post('/api/analysis', formData);
-        const data = res.data;
-        const scores: any[] = data.scores || [];
-
-        if (scores.length === 0) {
-          message.warning('未计算出相关性得分，请检查选择的列是否有效');
-          setLoading(false);
-          return;
-        }
-
-        // table_data 作为折线图+原始数据表格的数据源
-        const tableRows: any[] = data.table_data || [];
-        setChartData(tableRows);
-
-        // 相关性矩阵（平均得分）
-        const corrRows = [
-          {
-            indicator: targetCol,
-            ...Object.fromEntries(scores.map((s: any) => [s.variable, s.avg_score?.toFixed(4) || 'N/A'])),
-          },
-        ];
-        setCorrelationData(corrRows);
-        setSelectedFactors(scores.slice(0, 8).map((s: any) => s.variable));
-        setSelectedEconomicVars([targetCol]);
-        setUploadMode(true);
-
-        message.success(`真实数据分析完成，目标: ${targetCol}，分析 ${data.feature_count} 个特征，${data.data_points} 条数据`);
-      } catch (err: any) {
-        message.error(err?.response?.data?.detail || '分析请求失败');
-      } finally {
-        setLoading(false);
-      }
-      return;
-    }
-
-    // --- 原有 Mock 数据模式 ---
-    if (!dateRange || dateRange.length !== 2) {
-      message.error('请选择时间范围');
+      message.success(`分析完成，目标: ${targetCol}，分析 ${data.feature_count} 个特征，${data.data_points} 条数据`);
+    } catch (err: any) {
+      message.error(err?.response?.data?.detail || '分析请求失败');
+    } finally {
       setLoading(false);
-      return;
     }
-
-    setUploadMode(false);
-
-    const start = dateRange[0].format('YYYY-MM');
-    const end = dateRange[1].format('YYYY-MM');
-    const dates = generateDates(start, end);
-
-    // Mock API call delay
-    setTimeout(() => {
-      const allKeys = [...factors, ...economicVars];
-      const factorData = generateFactorData(dates, allKeys);
-      const corrMatrix = generateCorrelationMatrix(factors, economicVars);
-
-      setChartData(factorData);
-      setCorrelationData(corrMatrix);
-      setSelectedFactors(factors);
-      setSelectedEconomicVars(economicVars);
-      setLoading(false);
-      message.success('分析完成');
-    }, 500);
   };
 
   const getChartOption = () => {
     if (chartData.length === 0) return {};
 
-    // 上传模式：折线图展示 Excel 实际数据
-    if (uploadMode) {
-      const dataKeys = Object.keys(chartData[0]).filter(k => k !== 'date');
-      return {
-        tooltip: { trigger: 'axis' },
-        legend: { data: dataKeys, top: 0 },
-        grid: { left: 60, right: 30, top: 40, bottom: 40 },
-        xAxis: {
-          type: 'category',
-          data: chartData.map((item: any) => item.date),
-          axisLabel: { rotate: 30 },
-        },
-        yAxis: { type: 'value', name: '数值' },
-        series: dataKeys.map((key, i) => ({
-          name: key,
-          type: 'line',
-          data: chartData.map((item: any) => item[key]),
-          smooth: true,
-          lineStyle: i === 0 ? { width: 2.5 } : undefined,
-        })),
-      };
-    }
-
-    // Mock 模式：原有双轴折线图
-    const currentFactors = getCurrentFactors();
-    const currentIndicators = getCurrentIndicators();
-
+    const dataKeys = Object.keys(chartData[0]).filter(k => k !== 'date');
     return {
-      tooltip: {
-        trigger: 'axis'
-      },
-      legend: {
-        data: [
-          ...selectedFactors.map(f => currentFactors.find(rf => rf.name === f)?.label || f),
-          ...selectedEconomicVars.map(e => currentIndicators.find(ei => ei.key === e)?.label || e)
-        ]
-      },
+      tooltip: { trigger: 'axis' },
+      legend: { data: dataKeys, top: 0 },
+      grid: { left: 60, right: 30, top: 40, bottom: 40 },
       xAxis: {
         type: 'category',
-        data: chartData.map(item => item.date)
+        data: chartData.map((item: any) => item.date),
+        axisLabel: { rotate: 30 },
       },
-      yAxis: [
-        {
-          type: 'value',
-          position: 'left',
-          axisLine: { show: true, lineStyle: { color: '#5470C6' } }
-        },
-        {
-          type: 'value',
-          position: 'right',
-          axisLine: { show: true, lineStyle: { color: '#EE6666' } },
-          splitLine: { show: false },
-          axisLabel: { formatter: '{value}%' }
-        }
-      ],
-      series: [
-        ...selectedFactors.map(factor => {
-          const config = currentFactors.find(f => f.name === factor);
-          const isPercentage = config?.unit.includes('%');
-          return {
-            name: config?.label || factor,
-            type: 'line',
-            data: chartData.map(item => item[factor]),
-            smooth: true,
-            yAxisIndex: isPercentage ? 1 : 0
-          };
-        }),
-        ...selectedEconomicVars.map(ev => {
-          const config = currentIndicators.find(e => e.key === ev);
-          const isPercentage = config?.unit.includes('%');
-          return {
-            name: config?.label || ev,
-            type: 'line',
-            data: chartData.map(item => item[ev]),
-            smooth: true,
-            yAxisIndex: isPercentage ? 1 : 0,
-            lineStyle: { type: 'dashed' }
-          };
-        })
-      ]
+      yAxis: { type: 'value', name: '数值' },
+      series: dataKeys.map((key, i) => ({
+        name: key,
+        type: 'line',
+        data: chartData.map((item: any) => item[key]),
+        smooth: true,
+        lineStyle: i === 0 ? { width: 2.5 } : undefined,
+      })),
     };
   };
 
-  const currentFactors = getCurrentFactors();
-
   const factorColumns = [
     { title: '日期', dataIndex: 'date', key: 'date', fixed: 'left' as const, width: 120 },
-    ...selectedEconomicVars.map(e => {
-      const label = uploadMode ? e : (getCurrentIndicators().find(ei => ei.key === e)?.label || e);
-      return {
-        title: `${label}（目标变量）`,
-        dataIndex: e,
-        key: e,
-        render: (value: number) => <span style={{ color: '#EE6666', fontWeight: 500 }}>{value != null ? value.toFixed(2) : '-'}</span>
-      };
-    }),
+    ...selectedEconomicVars.map(e => ({
+      title: `${e}（目标变量）`,
+      dataIndex: e,
+      key: e,
+      render: (value: number) => <span style={{ color: '#EE6666', fontWeight: 500 }}>{value != null ? value.toFixed(2) : '-'}</span>
+    })),
     ...selectedFactors.map(f => {
-      const label = uploadMode ? f : (currentFactors.find(rf => rf.name === f)?.label || f);
       return {
-        title: label,
+        title: f,
         dataIndex: f,
         key: f,
         render: (value: number) => value != null ? value.toFixed(2) : '-'
@@ -366,12 +218,11 @@ const M02Analysis: React.FC = () => {
   const correlationColumns = [
     {
       title: '经济指标', dataIndex: 'indicator', key: 'indicator',
-      render: (text: string) => uploadMode ? text : (getCurrentIndicators().find(e => e.key === text)?.label || text)
+      render: (text: string) => text
     },
     ...selectedFactors.map(f => {
-      const config = uploadMode ? null : currentFactors.find(rf => rf.name === f);
       return {
-        title: config?.label || f,
+        title: f,
         dataIndex: f,
         key: f,
         render: (value: string) => {
@@ -416,53 +267,35 @@ const M02Analysis: React.FC = () => {
   };
 
   return (
-    <Layout style={{ height: 'calc(100vh - 64px)', background: 'transparent' }}>
+    <Layout style={{ height: 'calc(100vh - 64px)', background: '#F5F7FA' }}>
       <Sider
         width={340}
         theme="light"
-        style={{ padding: '0', borderRight: '1px solid #E2E5F2', overflowY: 'auto' }}
+        style={{ padding: '0', borderRight: '1px solid #E2E5F2', overflowY: 'auto', background: '#fff' }}
         breakpoint="lg"
         collapsedWidth="0"
       >
         <div style={{ padding: '24px 24px 0 24px' }}>
           <Title level={4} style={{ color: '#000409', fontWeight: 'bold' }}>分析配置</Title>
 
-          {/* --- 文件上传（可选） --- */}
-          <Collapse
-            ghost
-            size="small"
-            items={[{
-              key: 'upload',
-              label: <span><UploadOutlined style={{ marginRight: 8 }} />上传真实数据文件（可选）</span>,
-              children: (
-                <div style={{ marginBottom: 8 }}>
-                  <Upload
-                    accept=".xlsx,.xls"
-                    maxCount={1}
-                    fileList={uploadFileList}
-                    onChange={handleFileUpload}
-                    beforeUpload={() => false}
-                    showUploadList={{ showRemoveIcon: true }}
-                  >
-                    <Button icon={<UploadOutlined />} block>选择 Excel 文件</Button>
-                  </Upload>
-                  {uploadColumns.length > 0 && (
-                    <div style={{ marginTop: 12 }}>
-                      <div style={{ marginBottom: 4, color: '#666', fontSize: 12 }}>
-                        文件共 {uploadColumns.length} 列：
-                      </div>
-                      <div style={{ fontSize: 11, color: '#999', lineHeight: '18px', maxHeight: 80, overflowY: 'auto' }}>
-                        {uploadColumns.join('、')}
-                      </div>
-                      <div style={{ marginTop: 8, fontSize: 12, color: '#1890ff' }}>
-                        请在下方勾选目标经济变量与影响因素，列名需与文件中的列名一致
-                      </div>
-                    </div>
-                  )}
-                </div>
-              ),
-            }]}
-          />
+          {/* --- 数据类型选择 --- */}
+          <div style={{ marginBottom: 16 }}>
+            <div style={{ marginBottom: 8, fontSize: 14, color: '#333' }}>数据类型</div>
+            <Select
+              value={dataType}
+              onChange={handleDataTypeChange}
+              style={{ width: '100%' }}
+            >
+              <Select.Option value="区域">区域</Select.Option>
+              <Select.Option value="行业">行业</Select.Option>
+              <Select.Option value="产业">产业</Select.Option>
+            </Select>
+            {availableColumns.target_columns.length > 0 && (
+              <div style={{ marginTop: 8, fontSize: 12, color: '#999' }}>
+                已加载 {availableColumns.target_columns.length} 个目标列，{availableColumns.factor_columns.length} 个因素列
+              </div>
+            )}
+          </div>
 
           <Tabs
             activeKey={activeTab}
@@ -504,20 +337,24 @@ const M02Analysis: React.FC = () => {
             />
           </Form.Item>
 
-          <Form.Item name="economicVars" label="目标经济变量">
-            <Checkbox.Group style={{ display: 'flex', flexDirection: 'column' }}>
-              {getCurrentIndicators().map(ind => (
-                <Checkbox key={ind.key} value={ind.key} style={{ marginLeft: 0 }}>
-                  {ind.label}
-                </Checkbox>
-              ))}
-            </Checkbox.Group>
+          <Form.Item label="目标经济变量">
+            <Select
+              mode="multiple"
+              placeholder="选择目标经济变量"
+              style={{ width: '100%' }}
+              value={selectedEconomicTargets}
+              onChange={(vals) => setSelectedEconomicTargets(vals)}
+              allowClear
+              showSearch
+              maxTagCount={3}
+              options={availableColumns.target_columns.map(c => ({ label: c, value: c }))}
+            />
           </Form.Item>
 
           <Form.Item name="factors" label="影响因素">
-            <Select mode="multiple" placeholder="选择影响因素" style={{ width: '100%' }}>
-              {getCurrentFactors().map(f => (
-                <Option key={f.name} value={f.name}>{f.label}</Option>
+            <Select mode="multiple" placeholder="选择影响因素" style={{ width: '100%' }} showSearch allowClear maxTagCount={3}>
+              {availableColumns.factor_columns.map(f => (
+                <Option key={f} value={f}>{f}</Option>
               ))}
             </Select>
           </Form.Item>
@@ -534,12 +371,12 @@ const M02Analysis: React.FC = () => {
         {chartData.length > 0 ? (
           <Row gutter={[16, 16]}>
             <Col span={24}>
-              <Card title={uploadMode ? "影响因素得分" : "趋势分析 (双轴折线图)"}>
+              <Card title="影响因素得分">
                 <ReactECharts option={getChartOption()} style={{ height: 400, width: '100%' }} />
               </Card>
             </Col>
             <Col span={24}>
-              <Card title={uploadMode ? "相关性矩阵 (平均得分)" : "相关性矩阵 (Pearson)"}>
+              <Card title="相关性矩阵 (平均得分)">
                 <Table
                   dataSource={correlationData}
                   columns={correlationColumns}
@@ -547,7 +384,7 @@ const M02Analysis: React.FC = () => {
                   rowKey="indicator"
                   bordered
                   size="small"
-                  scroll={uploadMode ? { x: true } : undefined}
+                  scroll={{ x: true }}
                 />
               </Card>
             </Col>
@@ -564,7 +401,7 @@ const M02Analysis: React.FC = () => {
           </Row>
         ) : (
           <div style={{ padding: 40, textAlign: 'center', color: '#999' }}>
-            请在左侧配置参数并点击“计算相关性”
+            请在左侧配置参数并点击"计算相关性"
           </div>
         )}
       </Content>
