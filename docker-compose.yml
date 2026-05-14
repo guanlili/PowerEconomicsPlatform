@@ -6,8 +6,10 @@ services:
       MYSQL_ROOT_PASSWORD: root123
       MYSQL_DATABASE: power_economics
       MYSQL_CHARSET: utf8mb4
-    ports:
-      - "3306:3306"
+    # 默认不对外暴露端口，backend 通过容器网络 mysql:3306 访问
+    # 需要宿主机调试连库时取消下面两行注释
+    # ports:
+    #   - "127.0.0.1:${MYSQL_PORT:-3306}:3306"
     volumes:
       - mysql_data:/var/lib/mysql
       - ./backend/sql/init.sql:/docker-entrypoint-initdb.d/init.sql
@@ -28,10 +30,12 @@ services:
     image: power-economics-platform-backend:v3.0
     container_name: power-economics-backend
     environment:
-      # 容器内通过服务名 mysql 连接数据库
+      # 容器内通过服务名 mysql 连接数据库（容器间走 docker 网络，端口固定 3306）
       DATABASE_URL: "mysql+pymysql://root:root123@mysql:3306/power_economics?charset=utf8mb4"
-    ports:
-      - "8000:8000"
+    # 默认不对外暴露端口，frontend Nginx 通过容器网络 backend:8000 反代
+    # 需要外部调用 API（Swagger / 联调）时取消下面两行注释
+    # ports:
+    #   - "${BACKEND_PORT:-8000}:8000"
     depends_on:
       mysql:
         condition: service_healthy
@@ -46,7 +50,8 @@ services:
     image: power-economics-platform-frontend:v3.0
     container_name: power-economics-platform-frontend
     ports:
-      - "8094:80"
+      # 唯一对外暴露的端口，浏览器访问入口
+      - "${FRONTEND_PORT:-8094}:80"
     depends_on:
       - backend
     restart: unless-stopped

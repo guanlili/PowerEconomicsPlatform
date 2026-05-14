@@ -71,6 +71,7 @@ docker save -o power-economics-platform-frontend-v3.0.tar \
 | `power-economics-platform-backend-v3.0.tar` | 后端 Docker 镜像 | 步骤 3 导出 |
 | `power-economics-platform-frontend-v3.0.tar` | 前端 Docker 镜像 | 步骤 3 导出 |
 | `docker-compose.yml` | Docker Compose 编排文件 | 项目根目录 |
+| `.env`（可选） | 端口参数化配置，复制自 `.env.example` | 项目根目录 |
 | `backend/sql/init.sql` | 数据库初始化脚本（首次启动自动执行） | 项目目录 |
 
 **建议的服务器目录结构**：
@@ -236,10 +237,31 @@ docker compose up -d   # compose 会自动按新 image tag 替换容器，数据
 
 | 配置项 | 默认值 | 修改位置 |
 |--------|--------|----------|
-| MySQL 端口 | 3306 | `docker-compose.yml` 中 `mysql.ports` |
+| 前端端口（唯一对外） | 8094 | `.env` 中 `FRONTEND_PORT` |
+| 后端端口 | 8000（默认不对外） | `docker-compose.yml` `backend.ports` + `.env` `BACKEND_PORT` |
+| MySQL 端口 | 3306（默认不对外） | `docker-compose.yml` `mysql.ports` + `.env` `MYSQL_PORT` |
 | MySQL root 密码 | root123 | `docker-compose.yml` 中 `MYSQL_ROOT_PASSWORD` 与 `DATABASE_URL` 需同步改 |
-| 后端端口 | 8000 | `docker-compose.yml` 中 `backend.ports` |
-| 前端端口 | 8094 | `docker-compose.yml` 中 `frontend.ports` |
 | 数据库连接地址 | `mysql+pymysql://root:root123@mysql:3306/power_economics` | `backend` 服务的 `DATABASE_URL` 环境变量 |
+
+### 默认端口策略：最小暴露
+
+默认只对外暴露前端 `8094`，后端与 MySQL 仅在 docker 内部网络互通。防火墙只需开放一个端口。需要对外暴露后端 API 或远程连 MySQL 时，在 `docker-compose.yml` 里取消对应 `ports` 注释即可。
+
+### 端口冲突处理
+
+服务器上 `8094` 被占用时，复制一份 `.env` 修改即可，无需改 `docker-compose.yml`：
+
+```bash
+cp .env.example .env
+# 例如：
+# FRONTEND_PORT=18094
+
+docker compose up -d
+```
+
+说明：
+- 容器内部端口不变，只是映射到宿主机的端口可调整。
+- backend 连数据库、frontend Nginx 反代 backend 都走 docker 内部网络，不受宿主机映射端口影响。
+- 同样需要调整 backend / MySQL 对外端口时，先在 `docker-compose.yml` 里取消对应 `ports` 注释，再在 `.env` 里调端口。
 
 > 后端 `database.py` 中 `DATABASE_URL` 会优先读取环境变量，本地直接 `python main.py` 时则回落到 `localhost:3306`。
