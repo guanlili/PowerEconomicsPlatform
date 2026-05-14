@@ -2,6 +2,7 @@ import json
 import logging
 from typing import List, Optional
 
+import pandas as pd
 from fastapi import FastAPI, File, Form, UploadFile, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 

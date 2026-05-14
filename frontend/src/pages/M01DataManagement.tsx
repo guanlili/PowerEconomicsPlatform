@@ -168,7 +168,7 @@ const ECONOMIC_INDUSTRY_SECTOR_INDICATORS = [
   { name: '旅游收入', unit: '亿元' },
   { name: '旅游人次', unit: '万人次' },
   { name: '产业增加值', unit: '亿元' },
-  { name: '增加值增速', unit: '%' },
+  { name: '产业增加值增速', unit: '%' },
   { name: '产业增加值占GDP比重', unit: '%' },
   { name: '进出口总额', unit: '亿元' },
 ];

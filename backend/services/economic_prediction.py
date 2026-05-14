@@ -2,9 +2,9 @@
 经济预测服务
 重构自: backend/算法包/经济预测-以区域场景为例/经济预测.py
 
-提供基于 ARIMA 时间序列模型的经济指标预测功能：
-- 支持多指标并行预测
-- 自动区分率值类指标和绝对值类指标使用不同 ARIMA 参数
+提供基于 auto_arima (pmdarima) 时间序列模型的经济指标预测功能：
+- auto_arima 自动选择最优 ARIMA 参数（含季节性）
+- 多层兜底：auto_arima → ARIMA(1,1,1) → 季节趋势外推
 - 提供预测值与实际值对比及精准度评估
 """
 
@@ -14,19 +14,12 @@ from typing import Any, Dict, List, Optional
 
 import numpy as np
 import pandas as pd
+from pmdarima import auto_arima
 from statsmodels.tsa.arima.model import ARIMA
 
 logger = logging.getLogger(__name__)
 
-# Default ARIMA parameters
 DEFAULT_FORECAST_PERIODS = 12
-# For rate/percentage type indicators
-RATE_ARIMA_ORDER = (1, 1, 1)
-# For absolute value type indicators
-VALUE_ARIMA_ORDER = (2, 1, 2)
-
-# Keywords that indicate a rate/percentage type indicator
-RATE_KEYWORDS = ["增速", "率", "PPI", "CPI", "ppi", "cpi"]
 
 
 def _convert_time_format(time_str: Any) -> Optional[datetime]:
@@ -68,47 +61,113 @@ def _detect_date_column(df: pd.DataFrame) -> Optional[str]:
     return None
 
 
-def _arima_forecast(series: pd.Series, forecast_periods: int = 12,
-                    p: int = 1, d: int = 1, q: int = 1) -> List[float]:
+def _seasonal_trend_forecast(s: np.ndarray, periods: int) -> np.ndarray:
     """
-    Run ARIMA forecast on a time series.
-
-    Falls back to a simple estimate if ARIMA fails or data is insufficient.
-
-    Args:
-        series: Time series data
-        forecast_periods: Number of periods to forecast
-        p, d, q: ARIMA order parameters
-
-    Returns:
-        List of forecasted values
+    线性趋势 + 月度季节效应叠加，保证预测值有真实月度波动。
+    作为 ARIMA 失败时的兜底方案。
     """
+    s = np.array(s, dtype=float)
+    n = len(s)
+
+    # 线性趋势
+    x = np.arange(n)
+    coeffs = np.polyfit(x, s, 1)
+    trend = np.poly1d(coeffs)
+    trend_vals = trend(x)
+
+    # 去趋势残差的月度季节效应
+    detrended = s - trend_vals
+    seasonal_effects = np.zeros(12)
+    counts = np.zeros(12)
+    for i, val in enumerate(detrended):
+        idx = i % 12
+        seasonal_effects[idx] += val
+        counts[idx] += 1
+    counts[counts == 0] = 1
+    seasonal_effects /= counts
+
+    # 预测 = 趋势 + 季节效应
+    forecast = []
+    for i in range(periods):
+        future_x = n + i
+        t = trend(future_x)
+        s_eff = seasonal_effects[(n + i) % 12]
+        forecast.append(t + s_eff)
+
+    return np.array(forecast)
+
+
+def _arima_forecast(series: pd.Series, forecast_periods: int = 12) -> List[float]:
+    """
+    ARIMA 预测含多层兜底：auto_arima → ARIMA(1,1,1) → 季节趋势外推。
+
+    与原始算法一致:
+    1. 数据不足 12 点 → 季节趋势外推
+    2. 变异系数极小（近似常数）→ 季节趋势外推
+    3. auto_arima (seasonal, m=12, d=1, D=1)
+    4. 预测波动过小 → 回退到 ARIMA(1,1,1)
+    5. ARIMA(1,1,1) 失败 → 季节趋势外推
+    """
+    series = series.dropna().astype(float).reset_index(drop=True)
+    n = len(series)
+
+    # 数据太少
+    if n < 12:
+        logger.warning(f"数据点不足 ({n} < 12)，使用季节趋势外推")
+        forecast = _seasonal_trend_forecast(series.values, forecast_periods)
+        return forecast.tolist()
+
+    # 变异系数极小（近似常数序列）
+    cv = float(series.std() / (abs(series.mean()) + 1e-10))
+    if cv < 0.01:
+        logger.info(f"变异系数极小 (cv={cv:.6f})，使用季节趋势外推")
+        forecast = _seasonal_trend_forecast(series.values, forecast_periods)
+        return forecast.tolist()
+
+    # auto_arima（强制季节差分 D=1）
     try:
-        series = series.dropna()
-        if len(series) < 12:
-            logger.warning(f"数据点不足 ({len(series)} < 12)，使用末值填充")
-            return [float(series.iloc[-1])] * forecast_periods
+        model = auto_arima(
+            series,
+            start_p=1, start_q=1,
+            max_p=3, max_q=3,
+            m=12,
+            seasonal=True,
+            d=1, D=1,
+            trace=False,
+            error_action='ignore',
+            suppress_warnings=True,
+            stepwise=True
+        )
+        model_fit = model.fit(series)
+        forecast = model_fit.predict(n_periods=forecast_periods)
 
-        model = ARIMA(series, order=(p, d, q))
+        # 预测波动过小则切换
+        if np.std(forecast) < np.std(series.values) * 0.05:
+            raise ValueError("auto_arima 预测波动过小")
+
+        logger.info(f"auto_arima 预测成功，模型: {model.order}x{model.seasonal_order}")
+        return forecast.tolist()
+
+    except Exception as e:
+        logger.warning(f"auto_arima 失败: {e}，尝试 ARIMA(1,1,1)")
+
+    # ARIMA(1,1,1) 备用
+    try:
+        model = ARIMA(series, order=(1, 1, 1))
         model_fit = model.fit()
         forecast = model_fit.forecast(steps=forecast_periods)
+
+        if np.std(forecast) < np.std(series.values) * 0.05:
+            raise ValueError("ARIMA(1,1,1) 预测波动过小")
+
         return forecast.values.tolist()
+
     except Exception as e:
-        logger.warning(f"ARIMA 预测失败: {e}，使用降级策略")
-        last_value = float(series.iloc[-1])
-        if len(series) >= 12:
-            seasonal_avg = float(np.mean(series[-12:].values))
-            return [last_value * 0.9 + seasonal_avg * 0.1] * forecast_periods
-        else:
-            return [last_value] * forecast_periods
+        logger.warning(f"ARIMA(1,1,1) 失败: {e}，使用季节趋势外推")
 
-
-def _is_rate_type(col_name: str) -> bool:
-    """Check if an indicator is rate/percentage type based on its name."""
-    for kw in RATE_KEYWORDS:
-        if kw in col_name:
-            return True
-    return False
+    # 最终兜底
+    forecast = _seasonal_trend_forecast(series.values, forecast_periods)
+    return forecast.tolist()
 
 
 def _calculate_accuracy(actual: List[float], predicted: List[float]) -> Optional[float]:
@@ -241,17 +300,12 @@ def predict_economics(
 
         for col in target_columns:
             series = history_df[col]
-            if _is_rate_type(col):
-                p, d, q = RATE_ARIMA_ORDER
-            else:
-                p, d, q = VALUE_ARIMA_ORDER
-
-            predictions = _arima_forecast(series, forecast_periods, p, d, q)
+            predictions = _arima_forecast(series, forecast_periods)
             forecast_results[col] = predictions
 
         # --- 5. Format forecast values ---
         for col in forecast_results.columns:
-            if _is_rate_type(col):
+            if "增速" in col or "率" in col or "PPI" in col or "CPI" in col or "ppi" in col or "cpi" in col:
                 forecast_results[col] = forecast_results[col].round(2)
             else:
                 forecast_results[col] = forecast_results[col].round(0).astype(int)

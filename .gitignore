@@ -17,6 +17,9 @@ build
 # Algorithm packages
 backend/算法包
 
+# Data
+backend/data/
+
 # Python
 __pycache__/
 *.pyc

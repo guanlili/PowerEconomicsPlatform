@@ -90,7 +90,7 @@ const DEFAULT_SCENES: SceneData[] = [
     ],
     outputs: [
       { key: '1-2-o1', title: '产业增加值' },
-      { key: '1-2-o2', title: '增加值增速' },
+      { key: '1-2-o2', title: '产业增加值增速' },
       { key: '1-2-o3', title: '进出口总额' },
       { key: '1-2-o4', title: '全民消费品零售总额' },
       { key: '1-2-o5', title: '居民人均可支配收入' },

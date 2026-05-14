@@ -85,7 +85,7 @@ export const REGION_ECONOMIC_INDICATORS = [
   { key: "ppi", label: "生产价格指数（PPI）", unit: "%" },
   { key: "cpi", label: "居民消费价格指数(CPI)", unit: "%" },
   { key: "industrial_added_value", label: "规模以上工业增加值", unit: "亿元" },
-  { key: "import_export_total", label: "进出口总额", unit: "亿美元" }
+  { key: "import_export_total", label: "进出口总额", unit: "亿元" }
 ];
 
 export const INDUSTRY_ECONOMIC_INDICATORS = [
@@ -94,15 +94,15 @@ export const INDUSTRY_ECONOMIC_INDICATORS = [
   { key: "industry_profit_margin", label: "行业利润率", unit: "%" },
   { key: "revenue", label: "营业收入", unit: "亿元" },
   { key: "total_profit", label: "利润总额", unit: "亿元" },
-  { key: "import_export_value", label: "进出口额", unit: "亿美元" }
+  { key: "import_export_value", label: "进出口额", unit: "亿元" }
 ];
 
 export const SECTOR_ECONOMIC_INDICATORS = [
   { key: "sector_added_value", label: "产业增加值", unit: "亿元" },
-  { key: "added_value_growth", label: "增加值增速", unit: "%" },
+  { key: "added_value_growth", label: "产业增加值增速", unit: "%" },
   { key: "gdp_ratio", label: "产业增加值占GDP比重", unit: "%" },
   { key: "retail_sales_total", label: "全社会消费品零售总额", unit: "亿元" },
-  { key: "import_export_total", label: "进出口总额", unit: "亿美元" }
+  { key: "import_export_total", label: "进出口总额", unit: "亿元" }
 ];
 
 // For backward compatibility and common indicators
