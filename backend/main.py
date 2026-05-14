@@ -70,10 +70,12 @@ def _resolve_column_names(col_names: List[str], available_columns: List[str]) ->
 app = FastAPI(title="电力看经济平台 API", version="1.0")
 
 # CORS - allow frontend dev server
+# 注：allow_origins=['*'] 与 allow_credentials=True 在浏览器标准下不允许共存，
+#     本项目未使用 cookie/session，关闭 credentials 以免以后踩坑。
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
-    allow_credentials=True,
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -161,7 +163,25 @@ async def api_analyze_factors(
     _validate_data_type(data_type)
     target_df = _read_from_db(get_table_name(data_type, "目标经济变量")).copy()
     factor_df = _read_from_db(get_table_name(data_type, "影响因素")).copy()
-    df = pd.merge(target_df, factor_df, on="时间", how="inner")
+
+    # 自动识别两张表的时间列，避免硬编码“时间”导致的 KeyError
+    target_time_col = detect_time_column(target_df) or "时间"
+    factor_time_col = detect_time_column(factor_df) or "时间"
+    if target_time_col not in target_df.columns:
+        raise HTTPException(status_code=500, detail=f"目标经济变量表未找到时间列，可用列: {target_df.columns.tolist()}")
+    if factor_time_col not in factor_df.columns:
+        raise HTTPException(status_code=500, detail=f"影响因素表未找到时间列，可用列: {factor_df.columns.tolist()}")
+    # 统一两表的时间列名为目标表的名称
+    if factor_time_col != target_time_col:
+        factor_df = factor_df.rename(columns={factor_time_col: target_time_col})
+
+    try:
+        df = pd.merge(target_df, factor_df, on=target_time_col, how="inner", validate="1:1")
+    except pd.errors.MergeError as e:
+        raise HTTPException(
+            status_code=400,
+            detail=f"目标经济变量表与影响因素表按 '{target_time_col}' 列合并失败（可能存在重复时间值）: {str(e)}",
+        )
     logger.info(f"预置数据合并: {data_type}, 目标经济变量({len(target_df)}行) + 影响因素({len(factor_df)}行) → 合并({len(df)}行)")
 
     # 列名前缀匹配：将前端传来的列名映射到实际数据列名
@@ -421,6 +441,11 @@ async def api_data_import(
         new_df_keys = new_df[key_cols].copy()
         existing_df_keys = existing_keys[key_cols].copy()
         for col in key_cols:
+            # 对 datetime 类型键先转为 'YYYY-MM-DD' 字符串，避免 astype(str) 变成带时分秒的形式
+            if pd.api.types.is_datetime64_any_dtype(new_df_keys[col]):
+                new_df_keys[col] = to_date_string(new_df_keys[col])
+            if pd.api.types.is_datetime64_any_dtype(existing_df_keys[col]):
+                existing_df_keys[col] = to_date_string(existing_df_keys[col])
             new_df_keys[col] = new_df_keys[col].astype(str).str.strip()
             existing_df_keys[col] = existing_df_keys[col].astype(str).str.strip()
 

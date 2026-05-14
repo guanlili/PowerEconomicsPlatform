@@ -137,6 +137,7 @@ const M01DataManagement: React.FC = () => {
       })
       .catch((err) => {
         console.error('Failed to fetch sheets:', err);
+        message.error('数据结构加载失败，请检查后端服务');
       })
       .finally(() => {
         setSchemaLoading(false);
@@ -162,6 +163,7 @@ const M01DataManagement: React.FC = () => {
       })
       .catch((err) => {
         console.error('Failed to fetch data:', err);
+        message.error('数据加载失败，请检查后端服务');
       })
       .finally(() => {
         setDataLoading(false);

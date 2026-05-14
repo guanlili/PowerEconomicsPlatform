@@ -33,30 +33,20 @@ const M03Prediction: React.FC = () => {
 
   // --- 数据选择模式相关状态 ---
   const [dataType, setDataType] = useState<string>('产业');
-  const [availableFactors, setAvailableFactors] = useState<string[]>([]);
   const [selectedTargets, setSelectedTargets] = useState<string[]>([]);
 
-  // 获取可选影响因素列
-  const fetchColumns = async (type: string) => {
-    try {
-      const res = await axios.get('/api/data/columns', { params: { data_type: type } });
-      const data = res.data;
-      setAvailableFactors(data.factor_columns || []);
-
-      // 默认日期范围：2023年全年
-      form.setFieldValue('dateRange', [
-        dayjs('2023-01', 'YYYY-MM'),
-        dayjs('2023-12', 'YYYY-MM'),
-      ]);
-      form.setFieldValue('factors', []);
-    } catch (err: any) {
-      message.error(err?.response?.data?.detail || '获取数据列信息失败');
-    }
+  // 初始化默认时间范围（2023年全年）
+  const initDefaultDateRange = () => {
+    form.setFieldValue('dateRange', [
+      dayjs('2023-01', 'YYYY-MM'),
+      dayjs('2023-12', 'YYYY-MM'),
+    ]);
   };
 
-  // 初始化时加载默认数据类型的列
+  // 初始化时设置默认时间范围
   useEffect(() => {
-    fetchColumns(dataType);
+    initDefaultDateRange();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Handle form value changes (object selection only affects UI state)
@@ -67,7 +57,7 @@ const M03Prediction: React.FC = () => {
   // Reset form fields when tab changes
   const handleTabChange = (key: string) => {
     setActiveTab(key);
-    form.resetFields(['object', 'factors']);
+    form.resetFields(['object']);
     setPredictionData([]);
 
     // Set default object for the new tab to improve UX
@@ -84,7 +74,6 @@ const M03Prediction: React.FC = () => {
     const typeMap: Record<string, string> = { sector: '产业', region: '区域', industry: '行业' };
     const newType = typeMap[key] || '产业';
     setDataType(newType);
-    fetchColumns(newType);
   };
 
   const onFinish = async (values: any) => {
@@ -339,7 +328,6 @@ const M03Prediction: React.FC = () => {
             province: '贵州省',
             object: '第一产业',
             dateRange: [dayjs('2023-01', 'YYYY-MM'), dayjs('2023-12', 'YYYY-MM')],
-            factors: []
           }}
         >
           <Form.Item name="province" label="省份">
@@ -356,14 +344,6 @@ const M03Prediction: React.FC = () => {
               monthCellRender={monthCellRender}
               placeholder={['开始月份', '结束月份']}
             />
-          </Form.Item>
-
-          <Form.Item name="factors" label="影响因素">
-            <Select mode="multiple" placeholder="选择影响因素" style={{ width: '100%' }} showSearch allowClear maxTagCount={3}>
-              {availableFactors.map(f => (
-                <Option key={f} value={f}>{f}</Option>
-              ))}
-            </Select>
           </Form.Item>
 
           <Form.Item>
