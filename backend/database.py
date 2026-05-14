@@ -1,9 +1,16 @@
+import os
+
 from sqlalchemy import create_engine, text, inspect
 import logging
 
 logger = logging.getLogger(__name__)
 
-DATABASE_URL = "mysql+pymysql://root:root123@localhost:3306/power_economics?charset=utf8mb4"
+# 数据库连接地址支持通过环境变量覆盖，方便 Docker 部署
+# 本地开发（不设环境变量）仍默认连 localhost:3306
+DATABASE_URL = os.getenv(
+    "DATABASE_URL",
+    "mysql+pymysql://root:root123@localhost:3306/power_economics?charset=utf8mb4",
+)
 
 _engine = None
 
