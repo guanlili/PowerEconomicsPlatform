@@ -570,7 +570,15 @@ const M01DataManagement: React.FC = () => {
               </Radio.Group>
             </div>
             <div>
-              <div style={{ marginBottom: 6, fontWeight: 500 }}>上传文件</div>
+              <div style={{ marginBottom: 6, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <span style={{ fontWeight: 500 }}>上传文件</span>
+                <a
+                  href={`/api/data/template?sheet=${encodeURIComponent(importSheetName)}&data_type=${encodeURIComponent(importDataType)}`}
+                  style={{ fontSize: 12 }}
+                >
+                  📄 下载模板（{importDataType} / {importSheetName}）
+                </a>
+              </div>
               <Upload
                 accept=".xlsx,.xls"
                 maxCount={1}

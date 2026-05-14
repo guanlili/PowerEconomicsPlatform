@@ -1,11 +1,14 @@
 import io
 import json
 import logging
+import os
+import urllib.parse
 from typing import List, Optional
 
 import pandas as pd
 from fastapi import FastAPI, Form, Query, HTTPException, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import StreamingResponse
 from sqlalchemy import text, inspect
 
 from database import get_engine, init_db, get_table_name, TABLE_MAPPING
@@ -343,6 +346,77 @@ async def api_data_sheets():
                 continue
         sheets.append({"name": sheet_name, "data_types": data_types})
     return {"sheets": sheets}
+
+
+# backend/data 目录，用于模板 fallback 数据源
+DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
+
+
+def _get_template_columns(sheet_name: str, data_type: str) -> List[str]:
+    """获取指定 sheet+data_type 的模板列名
+
+    优先级：
+      1) 数据库中已存在该表 → 读库的列名（与导入校验完全对齐）
+      2) backend/data/{data_type}.xlsx 存在且含该 sheet → 读种子文件的表头
+      3) 均没有 → 抛 404
+    """
+    table_name = get_table_name(data_type, sheet_name)
+    # 1) 数据库优先
+    try:
+        columns, _ = _get_table_meta(table_name)
+        if columns:
+            return columns
+    except Exception:
+        pass
+
+    # 2) fallback 到 backend/data 下的种子 Excel
+    seed_path = os.path.join(DATA_DIR, f"{data_type}.xlsx")
+    if os.path.exists(seed_path):
+        try:
+            df = pd.read_excel(seed_path, sheet_name=sheet_name, nrows=0)
+            return df.columns.tolist()
+        except Exception as e:
+            logger.warning(f"读取种子模板失败 {seed_path}/{sheet_name}: {e}")
+
+    raise HTTPException(
+        status_code=404,
+        detail=f"无法生成 {data_type}/{sheet_name} 的模板：数据库中不存在该表，且 {seed_path} 也未提供参考文件",
+    )
+
+
+@app.get("/api/data/template")
+async def api_data_template(
+    sheet: str = Query(..., description="Sheet名（用电量/影响因素/目标经济变量）"),
+    data_type: str = Query(..., description="数据类型（区域/行业/产业）"),
+):
+    """下载指定 Sheet+数据类型 的导入模板 Excel
+
+    模板仅包含正确的表头，方便用户照格式填写后直接上传导入。
+    """
+    if sheet not in SHEET_NAMES:
+        raise HTTPException(status_code=400, detail=f"无效的Sheet名: {sheet}，可选值: {SHEET_NAMES}")
+    _validate_data_type(data_type)
+
+    columns = _get_template_columns(sheet, data_type)
+
+    # 生成空表（仅有表头），写到内存 Excel
+    buf = io.BytesIO()
+    empty_df = pd.DataFrame(columns=columns)
+    with pd.ExcelWriter(buf, engine="openpyxl") as writer:
+        empty_df.to_excel(writer, sheet_name=sheet, index=False)
+    buf.seek(0)
+
+    # 中文文件名需要 RFC 5987 编码，避免浏览器下载时乱码
+    filename = f"模板_{data_type}_{sheet}.xlsx"
+    quoted = urllib.parse.quote(filename)
+    headers = {
+        "Content-Disposition": f"attachment; filename=template.xlsx; filename*=UTF-8''{quoted}",
+    }
+    return StreamingResponse(
+        buf,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers=headers,
+    )
 
 
 @app.post("/api/data/import")
