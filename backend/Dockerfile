@@ -1,22 +1,23 @@
+# syntax=docker/dockerfile:1.4
 # Python backend for Power Economics Platform
 FROM python:3.11-slim
 
 # 设置工作目录
 WORKDIR /app
 
-# 国内常见基础依赖（pandas/numpy/statsmodels 等运行期需要少量动态库）
-# slim 镜像体积小，这里仅安装必要内容
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends \
-       build-essential \
-       curl \
-    && rm -rf /var/lib/apt/lists/*
+# 使用国内 PyPI 镜像（清华源），大幅加速依赖下载
+# pandas / numpy / scipy / statsmodels / pmdarima 都有 manylinux wheel，无需 build-essential
+RUN pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple \
+    && pip config set global.trusted-host pypi.tuna.tsinghua.edu.cn
 
 # 先拷贝 requirements 以利用 Docker 层缓存
 COPY requirements.txt .
 
-RUN pip install --no-cache-dir --upgrade pip \
-    && pip install --no-cache-dir -r requirements.txt
+# 用 BuildKit cache mount 缓存 pip 下载，二次构建几乎瞬时完成
+# 需要启用 BuildKit（Docker Desktop / Docker 20.10+ 默认已启用）
+RUN --mount=type=cache,target=/root/.cache/pip \
+    pip install --upgrade pip \
+    && pip install -r requirements.txt
 
 # 拷贝业务代码
 COPY . .
