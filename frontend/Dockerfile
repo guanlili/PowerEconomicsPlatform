@@ -14,9 +14,13 @@ RUN npm config set registry https://registry.npmmirror.com
 COPY package*.json ./
 
 # 用 BuildKit cache mount 缓存 npm 包，二次构建几乎瞬时完成
-# npm ci 比 npm install 快、且严格按 lock 文件安装
+# 注意：用 npm install --include=optional 而非 npm ci
+#   原因：package-lock.json 是在 macOS 生成的，rolldown-vite 依赖平台特定的 native binding（optionalDependencies）
+#   npm ci 在跨平台使用 lock 文件时，可能不会为当前平台重新选取 optional binding，导致 vite build 报
+#   "Cannot resolve entry module vite.config.ts"
+#   npm install 会重新解析当前平台的 optional 依赖，能装上 Linux 对应的 @rolldown/binding-linux-x64-gnu
 RUN --mount=type=cache,target=/root/.npm \
-    npm ci --prefer-offline --no-audit --no-fund
+    npm install --prefer-offline --no-audit --no-fund --include=optional
 
 COPY . .
 RUN npm run build
