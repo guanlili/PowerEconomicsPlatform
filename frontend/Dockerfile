@@ -13,17 +13,19 @@ RUN npm config set registry https://registry.npmmirror.com
 
 COPY package*.json ./
 
-# 注意：不使用 BuildKit cache mount（以及 npm ci），原因：
-#   1. cache mount 可能在多次构建间产生污染，与 --prefer-offline 叠加后出现 native binding 丢失
-#   2. npm ci 严格按 lock 文件，跨平台使用时不重新选取 optional binding
-#   3. 实测：诊断脚本里不加 cache mount 的 npm install 一发即中
-RUN npm install --no-audit --no-fund --include=optional \
-    && echo "===== rolldown bindings =====" \
-    && ls node_modules/@rolldown/ \
-    && node -e "require('rolldown'); console.log('✅ rolldown loaded OK')"
-
+# 一次性 COPY 全部源码（.dockerignore 已排除 node_modules / dist）
 COPY . .
-RUN npm run build
+
+# 在同一个 RUN 内完成 install + 验证 + build，避免中间层任何可能的污染
+# 关键：调用 rolldown.rolldown(…) 才会真正加载 native binding，仅 require('rolldown') 不够
+RUN set -ex \
+    && npm install --no-audit --no-fund --include=optional \
+    && echo "===== @rolldown directory =====" \
+    && ls -la node_modules/@rolldown/ \
+    && echo "===== Test rolldown native binding (must trigger native load) =====" \
+    && node -e "const r=require('rolldown'); r.rolldown({input:'./vite.config.ts'}).then(()=>console.log('✅ rolldown bundle OK')).catch(e=>{console.error('❌',e); process.exit(1)})" \
+    && echo "===== npm run build =====" \
+    && npm run build
 
 # Production stage
 FROM nginx:alpine AS production-stage
