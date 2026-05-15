@@ -1,0 +1,30 @@
+# 不要把宿主机的 node_modules / dist 复制进 build context
+# 容器内由 npm install 重新安装，确保 native binding 与目标平台匹配
+# （否则 macOS 构建产物或残留的 node_modules 进入容器会污染 rolldown 等 native 包）
+node_modules
+dist
+dist-ssr
+
+# 日志
+*.log
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+# IDE / 系统
+.vscode
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Git
+.git
+.gitignore
+
+# 之前的离线包/构建产物 tar
+power-economics-platform-frontend-*.tar
+*.tar
