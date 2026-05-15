@@ -13,14 +13,14 @@ RUN npm config set registry https://registry.npmmirror.com
 
 COPY package*.json ./
 
-# 用 BuildKit cache mount 缓存 npm 包，二次构建几乎瞬时完成
-# 注意：用 npm install --include=optional 而非 npm ci
-#   原因：package-lock.json 是在 macOS 生成的，rolldown-vite 依赖平台特定的 native binding（optionalDependencies）
-#   npm ci 在跨平台使用 lock 文件时，可能不会为当前平台重新选取 optional binding，导致 vite build 报
-#   "Cannot resolve entry module vite.config.ts"
-#   npm install 会重新解析当前平台的 optional 依赖，能装上 Linux 对应的 @rolldown/binding-linux-x64-gnu
-RUN --mount=type=cache,target=/root/.npm \
-    npm install --prefer-offline --no-audit --no-fund --include=optional
+# 注意：不使用 BuildKit cache mount（以及 npm ci），原因：
+#   1. cache mount 可能在多次构建间产生污染，与 --prefer-offline 叠加后出现 native binding 丢失
+#   2. npm ci 严格按 lock 文件，跨平台使用时不重新选取 optional binding
+#   3. 实测：诊断脚本里不加 cache mount 的 npm install 一发即中
+RUN npm install --no-audit --no-fund --include=optional \
+    && echo "===== rolldown bindings =====" \
+    && ls node_modules/@rolldown/ \
+    && node -e "require('rolldown'); console.log('✅ rolldown loaded OK')"
 
 COPY . .
 RUN npm run build
