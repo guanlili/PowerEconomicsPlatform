@@ -1,5 +1,6 @@
-# syntax=docker/dockerfile:1.4
 # Python backend for Power Economics Platform
+# 注意：BuildKit 内置 frontend 已支持 RUN --mount=type=cache，无需 # syntax 指令
+# 加上 # syntax 反而会触发 BuildKit 联网拉解析器镜像，离线/弱网环境会失败
 FROM python:3.11-slim
 
 # 设置工作目录

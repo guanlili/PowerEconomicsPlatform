@@ -1,6 +1,10 @@
-# syntax=docker/dockerfile:1.4
 # Build stage
-FROM node:22-alpine AS build-stage
+# 注意 1：BuildKit 内置 frontend 已支持 RUN --mount=type=cache，无需 # syntax 指令
+#         加上 # syntax 反而会触发 BuildKit 联网拉解析器镜像，离线/弱网环境会失败
+# 注意 2：使用 node:22-slim（Debian glibc）而非 node:22-alpine（musl）
+#         本项目依赖 rolldown-vite，需要平台特定的 native binary
+#         alpine 的 musl libc 在 npm ci 时容易丢失对应 binding，导致 vite build 失败
+FROM node:22-slim AS build-stage
 
 WORKDIR /app
 
