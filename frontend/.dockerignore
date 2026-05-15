@@ -1,9 +1,19 @@
-# 不要把宿主机的 node_modules / dist 复制进 build context
-# 容器内由 npm install 重新安装，确保 native binding 与目标平台匹配
-# （否则 macOS 构建产物或残留的 node_modules 进入容器会污染 rolldown 等 native 包）
+# 不要把宿主机的 node_modules 复制进 build context
+# （当前 Dockerfile 不在容器内 build，不需要 node_modules，也不需要源码以外的文件）
 node_modules
-dist
 dist-ssr
+
+# 源码相关，docker build 不需要
+src
+public
+index.html
+package*.json
+tsconfig*.json
+vite.config.ts
+eslint.config.js
+build-dist.sh
+README.md
+.gitignore
 
 # 日志
 *.log

@@ -1,36 +1,26 @@
-# Build stage
-# 注意 1：BuildKit 内置 frontend 已支持 RUN --mount=type=cache，无需 # syntax 指令
-#         加上 # syntax 反而会触发 BuildKit 联网拉解析器镜像，离线/弱网环境会失败
-# 注意 2：使用 node:22-slim（Debian glibc）而非 node:22-alpine（musl）
-#         本项目依赖 rolldown-vite，需要平台特定的 native binary
-#         alpine 的 musl libc 在 npm ci 时容易丢失对应 binding，导致 vite build 失败
-FROM node:22-slim AS build-stage
+# Frontend Dockerfile - 仅打包预先构建好的 dist 到 nginx
+#
+# 为什么不在容器内 npm run build：
+#   rolldown-vite@7.2.5 在某些 Linux 环境下，vite 内部 bundleConfigFile 调 rolldown
+#   会报 "Cannot resolve entry module vite.config.ts"（rolldown native binding 直接用没问题，
+#   是 vite 包装层的边缘 bug）。把构建挪到挂载式容器中执行可以稳定通过。
+#
+# 构建流程（在 docker compose up 之前需要先 build dist）：
+#   方式 1：使用脚本（推荐）
+#     ./frontend/build-dist.sh
+#
+#   方式 2：手动一行命令（在 frontend/ 目录下执行）
+#     docker run --rm -v $(pwd):/app -w /app node:22-slim bash -c "\
+#       npm config set registry https://registry.npmmirror.com && \
+#       npm install --no-audit --no-fund --include=optional && \
+#       npm run build"
 
-WORKDIR /app
+FROM nginx:alpine
 
-# 使用国内 npm 镜像，加速依赖下载
-RUN npm config set registry https://registry.npmmirror.com
+# 复制已构建好的静态资源（要求 frontend/dist 已存在）
+COPY dist /usr/share/nginx/html
 
-COPY package*.json ./
-
-# 一次性 COPY 全部源码（.dockerignore 已排除 node_modules / dist）
-COPY . .
-
-# 在同一个 RUN 内完成 install + 验证 + build，避免中间层任何可能的污染
-# 关键：调用 rolldown.rolldown(…) 才会真正加载 native binding，仅 require('rolldown') 不够
-RUN set -ex \
-    && npm install --no-audit --no-fund --include=optional \
-    && echo "===== @rolldown directory =====" \
-    && ls -la node_modules/@rolldown/ \
-    && echo "===== Test rolldown native binding (must trigger native load) =====" \
-    && node -e "const r=require('rolldown'); r.rolldown({input:'./vite.config.ts'}).then(()=>console.log('✅ rolldown bundle OK')).catch(e=>{console.error('❌',e); process.exit(1)})" \
-    && echo "===== npm run build =====" \
-    && npm run build
-
-# Production stage
-FROM nginx:alpine AS production-stage
-
-COPY --from=build-stage /app/dist /usr/share/nginx/html
+# Nginx 配置（含 /keti1/ 子路径 alias、/api/ 反代到 backend、/ → /keti1/ 跳转）
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 EXPOSE 80
