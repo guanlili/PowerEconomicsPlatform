@@ -8,7 +8,7 @@
 |------|--------|------|------|
 | MySQL 数据库 | MySQL 8.0 (Docker) | 3306 | 存储经济数据、影响因素等业务数据 |
 | Python 后端 | FastAPI + uvicorn (Docker) | 8000 | 提供数据管理、归因分析、经济预测 API |
-| 前端 | Vite + React + Nginx (Docker) | 8094 | 用户界面，Nginx 反向代理 API 请求到 backend 服务 |
+| 前端 | Vite + React 19 + Nginx (Docker) | 8094 | 用户界面，Nginx 反向代理 API 请求到 backend 服务 |
 
 本手册适用于**无法连接互联网**的服务器环境。您需要在本地（有网环境）完成镜像构建并导出，然后传输到服务器一键启动。
 
@@ -31,12 +31,21 @@
 
 在项目根目录执行，一次性构建三个镜像：
 
+> **前置步骤**：前端采用「预构建 dist + nginx」方式打包，需先构建前端静态资源：
+> ```bash
+> chmod +x frontend/build-dist.sh
+> ./frontend/build-dist.sh
+> ```
+
 ```bash
 cd /path/to/PowerEconomicsPlatform
 
-# 一次性构建 backend 和 frontend 镜像（跨平台 x86_64）
+# 构建 backend 镜像（跨平台 x86_64）
 # 注意：Apple Silicon 机器上需显式指定平台
-DOCKER_DEFAULT_PLATFORM=linux/amd64 docker compose build
+DOCKER_DEFAULT_PLATFORM=linux/amd64 docker compose build backend
+
+# 构建前端镜像（dist 已由 build-dist.sh 生成）
+DOCKER_DEFAULT_PLATFORM=linux/amd64 docker compose build frontend
 
 # 顺便把 MySQL 官方镜像也拉到本地（后面要导出）
 docker pull --platform linux/amd64 mysql:8.0
@@ -129,9 +138,9 @@ docker compose logs -f
 
 ### 5.3 访问地址
 
-- 前端页面：`http://<服务器IP>:8094/keti1/` （访问 `/` 会自动 301 跳转到 `/keti1/`）
-- 后端 API：`http://<服务器IP>:8000/`
-- MySQL：`<服务器IP>:3306`（用户名 `root`，密码 `root123`）
+- 前端页面：`http://<服务器IP>:8094/keti1/m04`
+- 后端 API：`http://<服务器IP>:8000/`（默认不对外暴露）
+- MySQL：`<服务器IP>:3306`（默认不对外暴露，用户名 `root`，密码 `root123`）
 
 ---
 
@@ -219,7 +228,14 @@ docker exec -i power-economics-mysql \
 
 ```bash
 # 本地：重新构建并导出新镜像（修改 compose 中 image tag，如 v3.1）
+
+# 1) 先重新构建前端 dist
+chmod +x frontend/build-dist.sh
+./frontend/build-dist.sh
+
+# 2) 构建 backend 和 frontend 镜像
 DOCKER_DEFAULT_PLATFORM=linux/amd64 docker compose build
+
 docker save -o power-economics-platform-backend-v3.1.tar \
   power-economics-platform-backend:v3.1
 docker save -o power-economics-platform-frontend-v3.1.tar \

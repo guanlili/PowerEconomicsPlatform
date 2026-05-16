@@ -12,7 +12,7 @@
 ## 技术栈
 | 层 | 技术 |
 |---|---|
-| 前端 | React 18 + TypeScript + Vite + Ant Design + ECharts + Axios |
+| 前端 | React 19 + TypeScript + Vite + Ant Design + ECharts + Axios |
 | 后端 | Python + FastAPI + uvicorn + Pandas + NumPy + Scikit-learn + SciPy + Statsmodels (ARIMA) + pmdarima |
 | 数据库 | MySQL 8.0（utf8mb4） |
 | 部署 | Docker + Docker Compose（前后端与数据库统一编排） |
@@ -24,6 +24,12 @@
 ### 方式一：Docker 全栈一键启动（推荐）
 
 要求：本机已安装 **Docker** 与 **Docker Compose V2**。
+
+> **前置步骤**：前端采用「预构建 dist + nginx」方式打包，需先构建前端静态资源：
+> ```bash
+> chmod +x frontend/build-dist.sh
+> ./frontend/build-dist.sh
+> ```
 
 ```bash
 # 在项目根目录
@@ -52,7 +58,7 @@ docker compose restart backend       # 重启某个服务
 docker compose logs -f frontend      # 查看单服务日志
 docker compose down                  # 停止全部服务（保留数据卷）
 docker compose down -v               # ⚠️ 同时清空数据库
-docker compose up -d --build         # 重新构建并启动
+./frontend/build-dist.sh && docker compose up -d --build  # 重新构建前端并启动
 ```
 
 > 离线环境部署（导出镜像 tar 后传输到内网服务器）请参考 [`OFFLINE_DEPLOY.md`](./OFFLINE_DEPLOY.md)。
@@ -115,7 +121,8 @@ PowerEconomicsPlatform/
 │   ├── sql/init.sql                # MySQL 首次启动初始化脚本
 │   └── data/                       # 模板 fallback 用的种子 Excel
 └── frontend/
-    ├── Dockerfile                  # 前端镜像（多阶段：node 构建 + nginx 运行）
+    ├── Dockerfile                  # 前端镜像（预构建 dist + nginx 运行）
+    ├── build-dist.sh               # 在 node:22-slim 容器中构建 dist
     ├── nginx.conf                  # /api 反代到 backend、/ 跳转到 /keti1/
     ├── vite.config.ts              # base: '/keti1/'
     └── src/
