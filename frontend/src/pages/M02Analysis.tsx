@@ -111,50 +111,90 @@ const M02Analysis: React.FC = () => {
       return;
     }
 
-    // 直接使用完整列名（包含单位），精确匹配
-    const targetCol = selectedEconomicTargets[0];
     // factors 已经是完整列名
     const factorLabels = factors as string[];
 
-    const formData = new FormData();
-    formData.append('data_type', dataType);
-    formData.append('target_col', targetCol);
-    formData.append('factor_cols', JSON.stringify(factorLabels));
-    formData.append('top_n', '20');
-
-    // 传递前端选择的时间范围
-    if (dateRange && dateRange.length === 2) {
-      formData.append('date_start', dateRange[0].format('YYYY-MM'));
-      formData.append('date_end', dateRange[1].format('YYYY-MM'));
-    }
-
     try {
-      const res = await axios.post('/api/analysis', formData);
-      const data = res.data;
-      const scores: any[] = data.scores || [];
+      // 对每个选中的经济指标分别发送请求
+      const requests = selectedEconomicTargets.map((targetCol) => {
+        const formData = new FormData();
+        formData.append('data_type', dataType);
+        formData.append('target_col', targetCol);
+        formData.append('factor_cols', JSON.stringify(factorLabels));
+        formData.append('top_n', '20');
 
-      if (scores.length === 0) {
+        // 传递前端选择的时间范围
+        if (dateRange && dateRange.length === 2) {
+          formData.append('date_start', dateRange[0].format('YYYY-MM'));
+          formData.append('date_end', dateRange[1].format('YYYY-MM'));
+        }
+
+        return axios.post('/api/analysis', formData);
+      });
+
+      const responses = await Promise.all(requests);
+
+      // 聚合所有响应结果
+      const allCorrRows: any[] = [];
+      const allFactorSet = new Set<string>();
+      let mergedChartData: Record<string, any> = {}; // 按 date 合并
+      let totalFeatures = 0;
+      let totalDataPoints = 0;
+      let hasValidResult = false;
+
+      responses.forEach((res, idx) => {
+        const data = res.data;
+        const scores: any[] = data.scores || [];
+        const targetCol = selectedEconomicTargets[idx];
+
+        if (scores.length === 0) return;
+        hasValidResult = true;
+
+        totalFeatures = Math.max(totalFeatures, data.feature_count || 0);
+        totalDataPoints = Math.max(totalDataPoints, data.data_points || 0);
+
+        // 相关性矩阵：每个经济指标一行
+        allCorrRows.push({
+          indicator: targetCol,
+          ...Object.fromEntries(scores.map((s: any) => [s.variable, s.avg_score?.toFixed(4) || 'N/A'])),
+        });
+
+        // 收集所有出现的因素变量（取前8个）
+        scores.slice(0, 8).forEach((s: any) => allFactorSet.add(s.variable));
+
+        // 合并 table_data（按 date 键合并多个目标的数据）
+        const tableRows: any[] = data.table_data || [];
+        tableRows.forEach((row: any) => {
+          const date = row.date;
+          if (!mergedChartData[date]) {
+            mergedChartData[date] = { date };
+          }
+          // 将当前行所有字段合并进去
+          Object.keys(row).forEach((key) => {
+            if (key !== 'date') {
+              mergedChartData[date][key] = row[key];
+            }
+          });
+        });
+      });
+
+      if (!hasValidResult) {
         message.warning('未计算出相关性得分，请检查选择的列是否有效');
         setLoading(false);
         return;
       }
 
-      // table_data 作为折线图+原始数据表格的数据源
-      const tableRows: any[] = data.table_data || [];
-      setChartData(tableRows);
+      // 按日期排序后设置图表数据
+      const sortedChartData = Object.values(mergedChartData).sort((a: any, b: any) =>
+        a.date.localeCompare(b.date)
+      );
+      setChartData(sortedChartData);
+      setCorrelationData(allCorrRows);
+      setSelectedFactors(Array.from(allFactorSet));
+      setSelectedEconomicVars([...selectedEconomicTargets]);
 
-      // 相关性矩阵（平均得分）
-      const corrRows = [
-        {
-          indicator: targetCol,
-          ...Object.fromEntries(scores.map((s: any) => [s.variable, s.avg_score?.toFixed(4) || 'N/A'])),
-        },
-      ];
-      setCorrelationData(corrRows);
-      setSelectedFactors(scores.slice(0, 8).map((s: any) => s.variable));
-      setSelectedEconomicVars([targetCol]);
-
-      message.success(`分析完成，目标: ${targetCol}，分析 ${data.feature_count} 个特征，${data.data_points} 条数据`);
+      const targetNames = selectedEconomicTargets.join('、');
+      message.success(`分析完成，目标: ${targetNames}，分析 ${totalFeatures} 个特征，${totalDataPoints} 条数据`);
     } catch (err: any) {
       message.error(err?.response?.data?.detail || '分析请求失败');
     } finally {

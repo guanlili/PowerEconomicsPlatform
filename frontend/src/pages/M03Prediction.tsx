@@ -29,7 +29,6 @@ const M03Prediction: React.FC = () => {
   const [activeTab, setActiveTab] = useState('sector');
   const [loading, setLoading] = useState(false);
   const [predictionData, setPredictionData] = useState<any[]>([]);
-  const [accuracySummary, setAccuracySummary] = useState<any[]>([]);
 
   // --- 数据选择模式相关状态 ---
   const [dataType, setDataType] = useState<string>('产业');
@@ -96,8 +95,6 @@ const M03Prediction: React.FC = () => {
       const forecasts = data.forecasts || [];
       const targets: string[] = data.target_columns || [];
       setSelectedTargets(targets);
-
-      setAccuracySummary(data.accuracy_summary || []);
 
       if (comparison.length > 0) {
         // 有实际值对比
