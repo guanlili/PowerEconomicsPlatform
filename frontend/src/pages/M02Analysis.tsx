@@ -57,17 +57,6 @@ const M02Analysis: React.FC = () => {
     }
   };
 
-  // 数据类型切换处理
-  const handleDataTypeChange = (value: string) => {
-    setDataType(value);
-    // 清空旧的选择（不同数据类型的列名不同）
-    form.setFieldValue('factors', []);
-    setSelectedEconomicTargets([]);
-    setChartData([]);
-    setCorrelationData([]);
-    fetchColumns(value);
-  };
-
   // 初始加载
   useEffect(() => {
     fetchColumns(dataType);
@@ -278,34 +267,22 @@ const M02Analysis: React.FC = () => {
         <div style={{ padding: '24px 24px 0 24px' }}>
           <Title level={4} style={{ color: '#000409', fontWeight: 'bold' }}>分析配置</Title>
 
-          {/* --- 数据类型选择 --- */}
           <div style={{ marginBottom: 16 }}>
-            <div style={{ marginBottom: 8, fontSize: 14, color: '#333' }}>数据类型</div>
-            <Select
-              value={dataType}
-              onChange={handleDataTypeChange}
-              style={{ width: '100%' }}
-            >
-              <Select.Option value="区域">区域</Select.Option>
-              <Select.Option value="行业">行业</Select.Option>
-              <Select.Option value="产业">产业</Select.Option>
-            </Select>
+            <Tabs
+              activeKey={activeTab}
+              onChange={handleTabChange}
+              items={[
+                { key: 'sector', label: '产业' },
+                { key: 'region', label: '区域' },
+                { key: 'industry', label: '行业' },
+              ]}
+            />
             {availableColumns.target_columns.length > 0 && (
-              <div style={{ marginTop: 8, fontSize: 12, color: '#999' }}>
+              <div style={{ fontSize: 12, color: '#999' }}>
                 已加载 {availableColumns.target_columns.length} 个目标列，{availableColumns.factor_columns.length} 个因素列
               </div>
             )}
           </div>
-
-          <Tabs
-            activeKey={activeTab}
-            onChange={handleTabChange}
-            items={[
-              { key: 'sector', label: '产业' },
-              { key: 'region', label: '区域' },
-              { key: 'industry', label: '行业' },
-            ]}
-          />
         </div>
 
         <Form
@@ -371,7 +348,7 @@ const M02Analysis: React.FC = () => {
         {chartData.length > 0 ? (
           <Row gutter={[16, 16]}>
             <Col span={24}>
-              <Card title="影响因素得分">
+              <Card title="趋势分析">
                 <ReactECharts option={getChartOption()} style={{ height: 400, width: '100%' }} />
               </Card>
             </Col>

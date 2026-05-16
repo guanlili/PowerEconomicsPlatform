@@ -357,24 +357,6 @@ const M03Prediction: React.FC = () => {
         <Title level={4}>预测结果</Title>
         {predictionData.length > 0 ? (
           <Row gutter={[16, 16]}>
-            {/* 精准度汇总 */}
-            {accuracySummary.length > 0 && (
-              <Col span={24}>
-                <Card title="精准度汇总">
-                  <Table
-                    dataSource={accuracySummary}
-                    columns={[
-                      { title: '预测指标', dataIndex: 'indicator', key: 'indicator' },
-                      { title: '精准度', dataIndex: 'accuracy', key: 'accuracy', render: (v: number | null) => v != null ? v.toFixed(2) + '%' : '-' },
-                    ]}
-                    rowKey="indicator"
-                    bordered
-                    size="small"
-                    pagination={false}
-                  />
-                </Card>
-              </Col>
-            )}
             <Col span={24}>
               <Card>
                 <ReactECharts option={getMainChartOption()} style={{ height: 400, width: '100%' }} />
