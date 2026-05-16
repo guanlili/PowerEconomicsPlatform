@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 # 在挂载式容器里构建前端 dist
-# 用途：绕过 rolldown-vite 在 docker build 阶段的 bundleConfigFile bug
 # 用法：
 #   cd frontend && ./build-dist.sh
 # 或在项目根目录：
@@ -18,7 +17,7 @@ docker run --rm \
   bash -c '
     set -e
     npm config set registry https://registry.npmmirror.com
-    npm install --no-audit --no-fund --include=optional
+    npm install --no-audit --no-fund
     npm run build
   '
 
